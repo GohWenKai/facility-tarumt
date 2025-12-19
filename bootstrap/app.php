@@ -13,11 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // --- ADD THIS BLOCK ---
+        // Add security headers to all responses
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        
+        // Custom middleware aliases
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'admin.ip' => \App\Http\Middleware\AdminIpWhitelist::class,
         ]);
-        // ----------------------
 
     })
     ->withExceptions(function (Exceptions $exceptions) {

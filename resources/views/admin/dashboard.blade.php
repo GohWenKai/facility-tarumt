@@ -97,8 +97,9 @@
     {{-- SECTION 1: ANALYTICS (Chart)                                                      --}}
     {{-- ================================================================================= --}}
     <div class="row">
-        <div class="col-md-12">
-            <div class="dashboard-card">
+        <!-- Analytics Chart -->
+        <div class="col-lg-8">
+            <div class="dashboard-card h-100">
                 <div class="dashboard-header d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="fw-bold text-dark m-0">
@@ -111,6 +112,52 @@
                     <div style="height: 300px; width: 100%;">
                         <canvas id="popularityChart"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security/Activity Feed -->
+        <div class="col-lg-4">
+            <div class="dashboard-card h-100">
+                <div class="dashboard-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark m-0">
+                            <i class="bi bi-shield-check text-success me-2"></i>Recent Activity
+                        </h5>
+                        <small class="text-muted">Live security feed</small>
+                    </div>
+                    <a href="{{ route('admin.audit_logs.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    @forelse($recentLogs as $log)
+                        <div class="list-group-item px-3 py-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <small class="fw-bold text-dark">{{ $log->user->name ?? 'System' }}</small>
+                                <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                @php
+                                    $icon = match($log->action) {
+                                        'created' => 'bi-plus-circle text-success',
+                                        'updated' => 'bi-pencil text-warning',
+                                        'deleted' => 'bi-trash text-danger',
+                                        'restored' => 'bi-arrow-counterclockwise text-primary',
+                                        default => 'bi-activity text-secondary'
+                                    };
+                                @endphp
+                                <i class="bi {{ $icon }} me-2"></i>
+                                <span class="text-muted small">
+                                    {{ ucfirst($log->action) }} 
+                                    <strong>{{ class_basename($log->model_type) }} #{{ $log->model_id }}</strong>
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
+                            No recent activity
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>

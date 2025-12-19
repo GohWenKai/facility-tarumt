@@ -108,5 +108,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
+        // Audit Log (Security Monitoring)
+        Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit_logs.index');
+        Route::get('/audit-logs/poll', [App\Http\Controllers\Admin\AuditLogController::class, 'getNewLogs'])->name('audit_logs.poll');
+        Route::post('/audit-logs/{id}/restore', [App\Http\Controllers\Admin\AuditLogController::class, 'restore'])->name('audit_logs.restore');
+        Route::get('/audit-logs/export', [App\Http\Controllers\Admin\AuditLogController::class, 'exportPdf'])->name('audit_logs.export');
     });
 });

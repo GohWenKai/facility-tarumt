@@ -36,7 +36,8 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.facilities.manage') }}"><i class="bi bi-door-open me-2"></i>Facilities</a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.assets.manage') }}"><i class="bi bi-box-seam me-2"></i>Assets</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}"><i class="bi bi-box-seam me-2"></i>Users</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}"><i class="bi bi-people me-2"></i>Users</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.audit_logs.index') }}"><i class="bi bi-shield-lock me-2"></i>Audit Log</a></li>
                             </ul>
                         </li>
                         

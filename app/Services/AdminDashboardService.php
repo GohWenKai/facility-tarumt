@@ -45,4 +45,15 @@ class AdminDashboardService
             ->with('facility') // Eager load facility name
             ->get();
     }
+
+    /**
+     * Get Recent Audit Logs for Dashboard Widget
+     */
+    public function getRecentAuditLogs()
+    {
+        return \App\Models\AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+    }
 }

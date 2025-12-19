@@ -15,6 +15,20 @@ class AssetObserver
      */
     public function created(Asset $asset)
     {
+        // Audit Log - Track creation
+        $auditLog = \App\Models\AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'created',
+            'model_type' => Asset::class,
+            'model_id' => $asset->id,
+            'new_values' => $asset->toArray(),
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Check for suspicious activity
+        $controller = app(\App\Http\Controllers\Admin\AuditLogController::class);
+        $controller->checkSuspiciousActivity($auditLog);
+        
         $soapEnvelope = new SimpleXMLElement('<soap:Envelope xmlns:soap="'.$this->ns.'"></soap:Envelope>');
         $soapBody = $soapEnvelope->addChild('Body', null, $this->ns);
         $assetNode = $soapBody->addChild('asset');
@@ -41,6 +55,21 @@ class AssetObserver
      */
     public function updated(Asset $asset)
     {
+        // Audit Log - Track updates
+        $auditLog = \App\Models\AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'updated',
+            'model_type' => Asset::class,
+            'model_id' => $asset->id,
+            'old_values' => $asset->getOriginal(),
+            'new_values' => $asset->getDirty(),
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Check for suspicious activity
+        $controller = app(\App\Http\Controllers\Admin\AuditLogController::class);
+        $controller->checkSuspiciousActivity($auditLog);
+        
         $path = "/assets/{$asset->id}.xml";
         
         // 1. Load existing XML or create new if missing
@@ -83,6 +112,20 @@ class AssetObserver
      */
     public function deleted(Asset $asset)
     {
+        // Audit Log - Track deletion
+        $auditLog = \App\Models\AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'deleted',
+            'model_type' => Asset::class,
+            'model_id' => $asset->id,
+            'old_values' => $asset->toArray(),
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Check for suspicious activity
+        $controller = app(\App\Http\Controllers\Admin\AuditLogController::class);
+        $controller->checkSuspiciousActivity($auditLog);
+        
         $path = "assets/{$asset->id}.xml";
         if (Storage::exists($path)) {
             Storage::delete($path);

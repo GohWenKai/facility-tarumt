@@ -13,37 +13,34 @@ class AssetHistoryService
         $path = "assets/{$id}.xml";
         $xmlRecords = [];
 
-        // DEBUG STEP 1: Check if Laravel sees the file
+        // 1. Check if file exists - return empty array if not found
         if (!Storage::exists($path)) {
-            dd("ERROR: File not found!", [
-                'Looking for' => $path,
-                'Real Path would be' => Storage::path($path),
-                'Does it exist?' => file_exists(Storage::path($path))
-            ]);
+            \Log::warning("Asset history XML file not found: {$path}");
+            return []; // Return empty history instead of crashing
         }
 
-        // DEBUG STEP 2: Check if we can read content
+        // 2. Check if we can read content
         $xmlString = Storage::get($path);
         if (empty($xmlString)) {
-            dd("ERROR: File exists but is empty!", $path);
+            \Log::warning("Asset history XML file is empty: {$path}");
+            return [];
         }
 
-        // DEBUG STEP 3: Check if XML loads
+        // 3. Check if XML loads
         $xml = @simplexml_load_string($xmlString);
         if ($xml === false) {
-            dd("ERROR: XML Content is corrupted/invalid.", $xmlString);
+            \Log::error("Asset history XML is corrupted: {$path}");
+            return [];
         }
 
-        // DEBUG STEP 4: Check Namespaces and Nodes
+        // 4. Check Namespaces and Nodes
         $ns = 'http://schemas.xmlsoap.org/soap/envelope/';
         $xml->registerXPathNamespace('soap', $ns);
         $nodes = $xml->xpath('//soap:Body/*');
 
         if (empty($nodes)) {
-            dd("ERROR: File loaded, but no nodes found inside <soap:Body>.", [
-                'Raw Content' => $xmlString,
-                'XPath Attempted' => '//soap:Body/*'
-            ]);
+            \Log::warning("Asset history XML has no records: {$path}");
+            return [];
         }
 
         // If we get here, everything is working, proceed to extract

@@ -32,6 +32,7 @@ class AdminDashboardController extends Controller
         $facilities = $this->dashboardService->getDailySchedule($selectedDate);
         $assets = $this->dashboardService->getDamagedAssets();
         $rawChartData = $this->dashboardService->getPopularFacilitiesData();
+        $recentLogs = $this->dashboardService->getRecentAuditLogs();
 
         // 3. USE ADAPTER: Format Data for Frontend
         // We convert the Database Collection into a specific Chart array format
@@ -43,7 +44,8 @@ class AdminDashboardController extends Controller
             'selectedDate' => $selectedDate,
             'assets'       => $assets,
             'chartLabels'  => $chartPayload['labels'],
-            'chartData'    => $chartPayload['data']
+            'chartData'    => $chartPayload['data'],
+            'recentLogs'   => $recentLogs
         ]);
     }
 }
