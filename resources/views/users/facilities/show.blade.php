@@ -157,9 +157,43 @@
                                         <option value="{{ $half }}">{{ $half }}</option>
                                     @endif
                                 @endfor
-                            </select>
+                        </select>
                         </div>
-                        @if($users)
+
+                        <!-- Recurring Booking Options -->
+                        <div class="mb-3 p-3 rounded" style="background: #f0f9ff; border: 1px solid #bfdbfe;">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring" value="1">
+                                <label class="form-check-label fw-bold" for="is_recurring">
+                                    <i class="bi bi-arrow-repeat text-primary"></i> Make this a recurring booking
+                                </label>
+                            </div>
+                            
+                            <div id="recurring-options" style="display: none; margin-top: 1rem;">
+                                <div class="mb-3">
+                                    <label class="form-label">Repeat Frequency</label>
+                                    <select name="recurring_frequency" class="form-select">
+                                        <option value="weekly" selected>Weekly (Same day every week)</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="monthly">Monthly (Same date each month)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Repeat Until</label>
+                                    <input type="date" name="recurring_end_date" class="form-control"
+                                           min="{{ date('Y-m-d', strtotime('+1 week')) }}" 
+                                           max="{{ date('Y-m-d', strtotime('+3 months')) }}">
+                                    <small class="text-muted">Maximum 3 months ahead</small>
+                                </div>
+                                
+                                <div class="alert alert-info py-2 mb-0">
+                                    <small><i class="bi bi-info-circle"></i> Credits will be charged for each booking in the recurring series.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($isNewAccount)
                             <div class="alert alert-warning text-center">
                                 🚨 **Account Activation in Progress.** <br>
                                 Please allow 24 hours for your booking credits to be allocated. You can confirm bookings starting tomorrow.
@@ -203,6 +237,16 @@
             // Initialize and show the modal automatically
             var myModal = new bootstrap.Modal(document.getElementById('scheduleModal'));
             myModal.show();
+        }
+
+        // Toggle recurring options
+        const recurringCheckbox = document.getElementById('is_recurring');
+        const recurringOptions = document.getElementById('recurring-options');
+        
+        if (recurringCheckbox && recurringOptions) {
+            recurringCheckbox.addEventListener('change', function() {
+                recurringOptions.style.display = this.checked ? 'block' : 'none';
+            });
         }
     });
 </script>

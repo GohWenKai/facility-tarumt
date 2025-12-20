@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => 'file', // Hardcoded to fix missing cache table issue
 
     /*
     |--------------------------------------------------------------------------

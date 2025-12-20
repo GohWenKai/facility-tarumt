@@ -12,11 +12,17 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\BuildingController; 
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {return redirect()->route('login');});
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+
+// OTP Verification Routes (for 2FA)
+Route::get('/verify-otp', [AuthController::class, 'showVerifyOtp'])->name('verify-otp');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp.submit');
+Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('verify-otp.resend');
 
 // 1. PUBLIC ROUTES (Guest only)
 Route::middleware('guest')->group(function () {
@@ -33,10 +39,11 @@ Route::middleware('auth')->group(function () {
 
 // 3. STUDENT & LECTURER ONLY
 Route::middleware(['auth', 'role:student|lecturer'])->group(function () {
-    Route::view('/users/dashboard', 'users.dashboard')->name('users.dashboard');
+    Route::get('/users/dashboard', [UserDashboardController::class, 'show'])->name('users.dashboard');
 
     Route::get('/facilities', [FacilityController::class, 'index'])->name('facilities.index');
     Route::get('/facilities/{id}', [FacilityController::class, 'show'])->name('facilities.show');
+
     
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/bookings/history-search', [SearchController::class, 'index'])->name('history.search');
@@ -50,8 +57,22 @@ Route::middleware(['auth', 'role:student|lecturer'])->group(function () {
     Route::get('/profile', [UserProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
+
+    // 2FA Settings Routes
+    Route::get('/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'settings'])->name('2fa.settings');
+    Route::post('/two-factor/enable', [\App\Http\Controllers\TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/two-factor/confirm', [\App\Http\Controllers\TwoFactorController::class, 'confirm'])->name('2fa.confirm');
+    Route::post('/two-factor/disable', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('2fa.disable');
+
+    // Notification Routes
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::post('/notifications/{notification}/mark-read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
 
     Route::get('/bookings/history', [SearchController::class, 'index'])->name('history');
+
+    // Credit Transactions
+    Route::get('/transactions', [App\Http\Controllers\TransactionController::class, 'index'])->name('transactions.index');
 
     // ENHANCEMENT: Apply Rate Limiting here
     Route::get('/bookings/search', [SearchController::class, 'search'])
@@ -60,7 +81,7 @@ Route::middleware(['auth', 'role:student|lecturer'])->group(function () {
 });
 
 // 4. ADMIN ONLY
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'admin.ip'])->group(function () {
     
     Route::get('/dashboard', [AdminDashboardController::class, 'show'])->name('dashboard');
     Route::get('/admin/assets/report', [AssetController::class, 'generateReport'])->name('admin.assets.report');
@@ -114,5 +135,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/audit-logs/poll', [App\Http\Controllers\Admin\AuditLogController::class, 'getNewLogs'])->name('audit_logs.poll');
         Route::post('/audit-logs/{id}/restore', [App\Http\Controllers\Admin\AuditLogController::class, 'restore'])->name('audit_logs.restore');
         Route::get('/audit-logs/export', [App\Http\Controllers\Admin\AuditLogController::class, 'exportPdf'])->name('audit_logs.export');
+
+        // Announcements
+        Route::get('/announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/announcements/create', [App\Http\Controllers\Admin\AnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('/announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::get('/announcements/{announcement}/edit', [App\Http\Controllers\Admin\AnnouncementController::class, 'edit'])->name('announcements.edit');
+        Route::put('/announcements/{announcement}', [App\Http\Controllers\Admin\AnnouncementController::class, 'update'])->name('announcements.update');
+        Route::delete('/announcements/{announcement}', [App\Http\Controllers\Admin\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+        Route::patch('/announcements/{announcement}/toggle', [App\Http\Controllers\Admin\AnnouncementController::class, 'toggle'])->name('announcements.toggle');
     });
 });

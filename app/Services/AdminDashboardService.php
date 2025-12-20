@@ -13,11 +13,20 @@ class AdminDashboardService
     /**
      * Get the Schedule view for a specific date
      */
+    /**
+     * Get the Schedule view for a specific date
+     */
     public function getDailySchedule(string $date)
     {
-        // Eager load bookings ONLY for the selected date
-        return Facility::with(['bookings' => function ($query) use ($date) {
-            $query->whereDate('start_time', $date)
+        // Parse the start and end of the selected day
+        $startOfDay = Carbon::parse($date)->startOfDay();
+        $endOfDay   = Carbon::parse($date)->endOfDay();
+
+        // Eager load bookings that OVERLAP with this day
+        // Overlap Rule: (Start < DayEnd) AND (End > DayStart)
+        return Facility::with(['bookings' => function ($query) use ($startOfDay, $endOfDay) {
+            $query->where('start_time', '<', $endOfDay)
+                  ->where('end_time', '>', $startOfDay)
                   ->whereIn('status', ['pending', 'approved'])
                   ->with('user'); // Also load user name for the schedule view
         }])->get();

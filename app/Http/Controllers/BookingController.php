@@ -27,12 +27,20 @@ class BookingController extends Controller
         $user = Auth::user();
 
         // 1. Validation
-        $request->validate([
+        $rules = [
             'facility_id'  => 'required|exists:facilities,id',
             'booking_date' => 'required|date|after_or_equal:today',
             'start_time'   => 'required|date_format:H:i',
             'end_time'     => 'required|date_format:H:i|after:start_time',
-        ]);
+        ];
+
+        // Add recurring validation if checkbox is checked
+        if ($request->has('is_recurring')) {
+            $rules['recurring_frequency'] = 'required|in:daily,weekly,monthly';
+            $rules['recurring_end_date'] = 'required|date|after:booking_date';
+        }
+
+        $request->validate($rules);
 
         // 2. Cache Lock (Simple prevention for double-click spam)
         $cacheKey = "booking_lock_{$user->id}";
@@ -45,8 +53,18 @@ class BookingController extends Controller
             // 3. DELEGATE TO SERVICE
             $booking = $this->bookingService->createBooking($user, $request->all());
 
-            return redirect()->route('history')
-                ->with('success', "Booking Submitted! Cost: {$booking->total_cost} Credits.");
+            // Count total bookings created (parent + children)
+            $childCount = $booking->childBookings()->count();
+            $totalCount = $childCount + 1;
+            $totalCost = $booking->total_cost * $totalCount;
+
+            if ($childCount > 0) {
+                $message = "Recurring Booking Created! {$totalCount} bookings for {$totalCost} credits total.";
+            } else {
+                $message = "Booking Submitted! Cost: {$booking->total_cost} Credits.";
+            }
+
+            return redirect()->route('history')->with('success', $message);
 
         } catch (\Exception $e) {
             return back()->withErrors(['msg' => $e->getMessage()])->withInput();

@@ -14,9 +14,29 @@ class AssetController extends Controller
     // ==========================================
     // 1. READ (Manage / List)
     // ==========================================
-    public function manage()
+    public function manage(Request $request)
     {
-        $assets = Asset::with('facility')->paginate(10);
+        $query = Asset::with('facility');
+        
+        // Filter by condition if provided
+        if ($request->has('condition') && $request->condition !== 'all') {
+            $query->where('condition', $request->condition);
+        }
+        
+        // Search filter
+        if ($request->has('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhereHas('facility', function($fq) use ($search) {
+                      $fq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $assets = $query->paginate(10)->appends($request->query());
+        
         return view('admin.assets.index', compact('assets'));
     }
 

@@ -13,19 +13,25 @@ class UserController extends Controller
     {
         $query = \App\Models\User::query();
 
-        // Search Logic
-        if ($request->has('search')) {
-            $search = $request->get('search');
+        // Base filter: Only show students and lecturers (not admins)
+        $query->whereIn('role', ['lecturer', 'student']);
 
-            $query->whereIn('role', ['lecturer', 'student'])
-                ->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('tarumt_id', 'like', "%{$search}%");
-                });
+        // Role Filter (for filter pills)
+        if ($request->has('role') && in_array($request->role, ['student', 'lecturer'])) {
+            $query->where('role', $request->role);
         }
 
-        $users = $query->orderBy('created_at', 'desc')->whereIn('role', ['lecturer', 'student'])->paginate(10);
+        // Search Logic
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('tarumt_id', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return view('admin.users.index', compact('users'));
     }

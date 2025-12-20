@@ -168,9 +168,9 @@
     {{-- ================================================================================= --}}
     
 @php
-    // define time slots
-    $startHour = 8; 
-    $endHour = 22; 
+    // define time slots - Full 24-hour range to show all bookings (including midnight)
+    $startHour = 0; 
+    $endHour = 24; 
     $timeSlots = [];
     for ($h = $startHour; $h < $endHour; $h++) {
         $timeSlots[] = sprintf('%02d:00', $h);

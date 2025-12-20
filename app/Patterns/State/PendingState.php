@@ -3,7 +3,10 @@
 namespace App\Patterns\State;
 
 use App\Models\Booking;
+use App\Models\Notification;
+use App\Mail\BookingApprovedMail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 use SimpleXMLElement;
 use Carbon\Carbon;
 
@@ -31,7 +34,24 @@ class PendingState implements BookingState
 
         Storage::put("xml/{$booking->id}.xml", $soapEnvelope->asXML());
 
-        return "Booking Approved & Ticket Generated.";
+        // 3. CREATE NOTIFICATION
+        Notification::notify(
+            $booking->user_id,
+            'Booking Approved! ✅',
+            "Your booking for {$booking->facility->name} on " . Carbon::parse($booking->start_time)->format('M d, H:i') . " has been approved.",
+            'success',
+            route('history')
+        );
+
+        // 4. SEND EMAIL NOTIFICATION
+        try {
+            Mail::to($booking->user->email)->send(new BookingApprovedMail($booking));
+        } catch (\Exception $e) {
+            // Log error but don't fail the approval
+            \Log::error('Failed to send booking approval email: ' . $e->getMessage());
+        }
+
+        return "Booking Approved & Ticket Generated. Email sent to {$booking->user->email}";
     }
 
     public function reject(Booking $booking)
@@ -42,6 +62,15 @@ class PendingState implements BookingState
         // 2. Update Status
         $booking->status = 'rejected';
         $booking->save();
+
+        // 3. CREATE NOTIFICATION
+        Notification::notify(
+            $booking->user_id,
+            'Booking Rejected',
+            "Your booking for {$booking->facility->name} was rejected. {$booking->total_cost} credits have been refunded.",
+            'danger',
+            route('history')
+        );
 
         return "Booking Rejected. Credits Refunded.";
     }

@@ -57,6 +57,54 @@
                             </span>
                         </li>
 
+                        <!-- Notification Bell -->
+                        @php
+                            $unreadCount = \App\Models\Notification::where('user_id', Auth::id())->unread()->count();
+                            $recentNotifications = \App\Models\Notification::where('user_id', Auth::id())
+                                ->orderBy('created_at', 'desc')
+                                ->take(5)
+                                ->get();
+                        @endphp
+                        <li class="nav-item dropdown mx-2">
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-bell-fill" style="font-size: 1.2rem;"></i>
+                                @if($unreadCount > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                                    </span>
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
+                                    <span class="fw-bold">Notifications</span>
+                                    @if($unreadCount > 0)
+                                        <span class="badge bg-primary">{{ $unreadCount }} new</span>
+                                    @endif
+                                </li>
+                                <li><hr class="dropdown-divider m-0"></li>
+                                @forelse($recentNotifications as $notification)
+                                    <li>
+                                        <a class="dropdown-item py-2 {{ !$notification->is_read ? 'bg-light' : '' }}" 
+                                           href="{{ $notification->link ?? '#' }}">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="bi bi-{{ $notification->type == 'success' ? 'check-circle text-success' : ($notification->type == 'warning' ? 'exclamation-triangle text-warning' : ($notification->type == 'danger' ? 'x-circle text-danger' : 'info-circle text-primary')) }}" style="font-size: 1.25rem;"></i>
+                                                <div>
+                                                    <div class="fw-semibold" style="font-size: 0.9rem;">{{ $notification->title }}</div>
+                                                    <small class="text-muted">{{ Str::limit($notification->message, 50) }}</small>
+                                                    <div><small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small></div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                @empty
+                                    <li class="text-center py-4">
+                                        <i class="bi bi-bell-slash text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mb-0 mt-2">No notifications yet</p>
+                                    </li>
+                                @endforelse
+                            </ul>
+                        </li>
+
                         <!-- User Profile Dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle btn btn-link text-white text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
@@ -69,7 +117,12 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('profile') }}">
+                                    <a class="dropdown-item" href="{{ route('transactions.index') }}">
+                                        <i class="bi bi-wallet2 me-2"></i>Credit History
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('profile.show') }}">
                                         <i class="bi bi-person-gear me-2"></i>My Profile
                                     </a>
                                 </li>
@@ -121,6 +174,44 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Mark notifications as read when dropdown opens -->
+    @auth
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationDropdown = document.querySelector('.nav-item.dropdown .bi-bell-fill')?.closest('.dropdown');
+            
+            if (notificationDropdown) {
+                notificationDropdown.addEventListener('shown.bs.dropdown', function() {
+                    // Make AJAX call to mark all as read
+                    fetch('{{ route("notifications.markAllRead") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    }).then(response => {
+                        if (response.ok) {
+                            // Remove the badge
+                            const badge = notificationDropdown.querySelector('.badge.bg-danger');
+                            if (badge) badge.remove();
+                            
+                            // Remove the "X new" badge in dropdown header
+                            const newBadge = notificationDropdown.querySelector('.dropdown-header .badge.bg-primary');
+                            if (newBadge) newBadge.remove();
+                            
+                            // Remove bg-light from all notification items (unread indicator)
+                            notificationDropdown.querySelectorAll('.dropdown-item.bg-light').forEach(item => {
+                                item.classList.remove('bg-light');
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    @endauth
+    
     @stack('scripts')
 </body>
 </html>

@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Adapters\SearchQueryAdapter; // Import Pattern
 use App\Http\Requests\StoreFacilityRequest; // Import Pattern
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class FacilityController extends Controller
@@ -28,53 +30,59 @@ class FacilityController extends Controller
 
     public function index(Request $request)
     {
-        $query = Facility::with('building')
-            ->where('status', 'Available')
-            ->withCount(['assets as broken_assets_count' => function ($q) {
-                $q->whereIn('condition', ['Damaged', 'Maintenance']);
-            }]);
+        // API OPTIMIZATION: Cache facilities list for 5 minutes
+        $cacheKey = 'facilities.list.' . md5($request->fullUrl());
+        
+        $facilities = Cache::remember($cacheKey, 300, function () use ($request) {
+            $query = Facility::with('building')
+                ->where('status', 'Available')
+                ->withCount(['assets as broken_assets_count' => function ($q) {
+                    $q->whereIn('condition', ['Damaged', 'Maintenance']);
+                }]);
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
+            if ($request->filled('search')) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            }
 
-        $facilities = $query->paginate(9);
+            return $query->paginate(9);
+        });
         
         return view('users.facilities.index', compact('facilities'));
     }
     
     public function show($id, Request $request)
-    {
-        $users = User::whereDate('created_at', today())->get();
+{
+    // Check if CURRENT user was created today (account activation in progress)
+    $isNewAccount = Auth::user()->created_at->isToday();
 
-        $facility = Facility::with(['building', 'assets'])->findOrFail($id);
+    $facility = Facility::with(['building', 'assets'])->findOrFail($id);
 
-        // 1. Get the requested date, or default to Today
-        $dateParam = $request->query('date'); 
-        $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now();
+    // 1. Get the requested date, or default to Today
+    $dateParam = $request->query('date'); 
+    $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now();
 
-        $start_hour = (int) Carbon::parse($facility->start_time)->format('H');
-        $end_hour   = (int) Carbon::parse($facility->end_time)->format('H');
+    $start_hour = (int) Carbon::parse($facility->start_time)->format('H');
+    $end_hour   = (int) Carbon::parse($facility->end_time)->format('H');
 
-        // Filter for Broken Assets
-        $brokenAssets = $facility->assets->filter(function ($asset) {
-            return in_array($asset->condition, ['Damaged', 'Maintenance']);
+    // Filter for Broken Assets
+    $brokenAssets = $facility->assets->filter(function ($asset) {
+        return in_array($asset->condition, ['Damaged', 'Maintenance']);
+    });
+
+    // 2. Update Schedule Query
+    $schedule = Booking::where('facility_id', $id)
+        ->where('start_time', '>=', $currentDate->copy()->startOfDay())
+        ->where('start_time', '<=', $currentDate->copy()->addDays(7)->endOfDay())
+        ->where('status', '!=', 'rejected') 
+        ->orderBy('start_time', 'asc')
+        ->get()
+        ->groupBy(function($val) {
+            return Carbon::parse($val->start_time)->format('Y-m-d');
         });
 
-        // 2. Update Schedule Query
-        $schedule = Booking::where('facility_id', $id)
-            ->where('start_time', '>=', $currentDate->copy()->startOfDay())
-            ->where('start_time', '<=', $currentDate->copy()->addDays(7)->endOfDay())
-            ->where('status', '!=', 'rejected') 
-            ->orderBy('start_time', 'asc')
-            ->get()
-            ->groupBy(function($val) {
-                return Carbon::parse($val->start_time)->format('Y-m-d');
-            });
-
-        // 3. Pass ALL variables to the view
-        return view('users.facilities.show', compact('facility', 'brokenAssets', 'schedule', 'start_hour', 'end_hour', 'currentDate', 'users'));
-    }
+    // 3. Pass ALL variables to the view
+    return view('users.facilities.show', compact('facility', 'brokenAssets', 'schedule', 'start_hour', 'end_hour', 'currentDate', 'isNewAccount'));
+}
 
     // ============================================================
     // XML SEARCH API (Using Adapter Pattern)

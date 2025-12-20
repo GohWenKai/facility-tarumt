@@ -27,6 +27,16 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
         \App\Models\Asset::observe(\App\Observers\AssetObserver::class);
         
+        // Security: Enforce Strong Passwords
+        \Illuminate\Validation\Rules\Password::defaults(function () {
+            return \Illuminate\Validation\Rules\Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+                ->uncompromised();
+        });
+        
     }
     
 }

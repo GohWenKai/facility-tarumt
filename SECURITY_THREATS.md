@@ -300,6 +300,108 @@ public function handle($request, Closure $next) {
 
 ---
 
+---
+
+## 🔐 Login Security Module
+
+### Threat 1: Brute Force Attacks
+**Description**: Attackers attempt to guess user passwords by submitting thousands of login attempts per second.
+
+**OWASP Reference**: A07:2021 – Identification and Authentication Failures
+
+**Attack Vector**:
+- Automated scripts trying common passwords against valid usernames.
+
+**Mitigation Strategy**:
+✅ **Rate Limiting (Throttling)**
+```php
+// RouteServiceProvider / Login Controller
+RateLimiter::for('login', function (Request $request) {
+    return Limit::perMinute(5)->by($request->email.$request->ip());
+});
+```
+
+**Additional Protections**:
+- Account lockout after 5 failed attempts.
+- CAPTCHA integration.
+
+---
+
+## 📂 File Management Module
+
+### Threat 1: Malicious File Uploads
+**Description**: Attackers upload executable scripts (e.g., PHP web shells) disguised as images to gain control of the server.
+
+**OWASP Reference**: A04:2021 – Insecure Design
+
+**Attack Vector**:
+- Uploading `evil.php.jpg` or `shell.php` to the profile picture section.
+
+**Mitigation Strategy**:
+✅ **Strict Validation & Storage Hygiene**
+```php
+$request->validate([
+    'avatar' => [
+        'required', 
+        'image',           // Must be an image
+        'mimes:jpeg,png',  // Only allow jpg/png extensions
+        'max:2048'         // Max 2MB
+    ]
+]);
+
+// Store with generated unique name, never original name
+$path = $request->file('avatar')->storeAs(
+    'avatars', 
+    Str::uuid() . '.jpg'
+);
+```
+
+---
+
+## 👤 User Account Module
+
+### Threat 1: Weak Password Usage
+**Description**: Users setting easily guessable passwords (e.g., "123456", "password") making accounts easy to compromise.
+
+**OWASP Reference**: A07:2021 – Identification and Authentication Failures
+
+**Mitigation Strategy**:
+✅ **Password Complexity Enforcement**
+```php
+// AppServiceProvider.php
+Password::defaults(function () {
+    return Password::min(8)
+        ->letters()
+        ->mixedCase()
+        ->numbers()
+        ->symbols()
+        ->uncompromised();
+});
+```
+
+---
+
+## 🌐 Global Security Headers
+
+### Threat 1: Clickjacking
+**Description**: Attackers embed your website inside an invisible iframe on their malicious site to trick users into clicking buttons.
+
+**OWASP Reference**: A05:2021 – Security Misconfiguration
+
+**Mitigation Strategy**:
+✅ **X-Frame-Options Header**
+```php
+// SecurityHeadersMiddleware.php
+public function handle($request, Closure $next)
+{
+    $response = $next($request);
+    $response->headers->set('X-Frame-Options', 'DENY');
+    return $response;
+}
+```
+
+---
+
 ## 🎯 Summary Matrix
 
 | Module | Threat 1 | Threat 2 | Primary Mitigation |

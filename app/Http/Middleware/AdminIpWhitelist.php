@@ -36,11 +36,10 @@ class AdminIpWhitelist
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip IP check in local development
-        if (app()->environment('local', 'testing')) {
-            return $next($request);
-        }
-
+        // Skip IP check in local development (COMMENTED OUT FOR DEMO)
+        // if (app()->environment('local', 'testing')) {
+        //     return $next($request);
+        // }
         $clientIp = $request->ip();
 
         // Check if IP is in whitelist

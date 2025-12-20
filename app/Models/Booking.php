@@ -22,6 +22,11 @@ class Booking extends Model
         'end_time',
         'total_cost',
         'status',       // 'pending', 'approved', 'rejected'
+        // Recurring booking fields
+        'is_recurring',
+        'recurring_frequency',
+        'recurring_end_date',
+        'parent_booking_id',
     ];
 
     // 3. Auto-convert Dates
@@ -29,6 +34,8 @@ class Booking extends Model
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'total_cost' => 'integer',
+        'is_recurring' => 'boolean',
+        'recurring_end_date' => 'date',
     ];
 
     // --- RELATIONSHIPS ---
@@ -49,5 +56,23 @@ class Booking extends Model
     public function approval()
     {
         return $this->hasOne(BookingApproval::class);
+    }
+
+    // Parent booking (for recurring child bookings)
+    public function parentBooking()
+    {
+        return $this->belongsTo(Booking::class, 'parent_booking_id');
+    }
+
+    // Child bookings (for recurring parent)
+    public function childBookings()
+    {
+        return $this->hasMany(Booking::class, 'parent_booking_id');
+    }
+
+    // Scope for recurring bookings
+    public function scopeRecurring($query)
+    {
+        return $query->where('is_recurring', true);
     }
 }

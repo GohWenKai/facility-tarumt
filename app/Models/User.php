@@ -31,6 +31,11 @@ class User extends Authenticatable
         'failed_login_attempts',  // Rate limiting logic
         'address',
         'tel',
+        // 2FA Fields
+        'two_factor_enabled',
+        'two_factor_method',      // 'email' or 'sms'
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     /**
@@ -40,6 +45,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'ip_address', // Privacy: Don't send IP in API responses
+        'two_factor_code', // Never expose OTP code
     ];
 
     /**
@@ -52,7 +58,51 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_login_at' => 'datetime', // Auto-convert to Carbon object
             'credits' => 'integer',
+            'two_factor_enabled' => 'boolean',
+            'two_factor_expires_at' => 'datetime',
         ];
+    }
+
+    // --- 2FA HELPER METHODS ---
+
+    /**
+     * Generate and store a new OTP code
+     */
+    public function generateTwoFactorCode(): string
+    {
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        $this->two_factor_code = $code;
+        $this->two_factor_expires_at = now()->addMinutes(5);
+        $this->save();
+        
+        return $code;
+    }
+
+    /**
+     * Verify if a code is valid
+     */
+    public function verifyTwoFactorCode(string $code): bool
+    {
+        if (!$this->two_factor_code || !$this->two_factor_expires_at) {
+            return false;
+        }
+
+        if (now()->isAfter($this->two_factor_expires_at)) {
+            return false; // Code expired
+        }
+
+        return $this->two_factor_code === $code;
+    }
+
+    /**
+     * Clear the 2FA code after successful verification
+     */
+    public function clearTwoFactorCode(): void
+    {
+        $this->two_factor_code = null;
+        $this->two_factor_expires_at = null;
+        $this->save();
     }
 
     // --- RELATIONSHIPS (Day 1 Requirement) ---
@@ -67,5 +117,11 @@ class User extends Authenticatable
     public function approvals()
     {
         return $this->hasMany(BookingApproval::class, 'approver_id');
+    }
+
+    // Relationship: User has many credit transactions
+    public function transactions()
+    {
+        return $this->hasMany(CreditTransaction::class)->orderBy('created_at', 'desc');
     }
 }

@@ -1,215 +1,306 @@
 @extends('layouts.app')
 
 @section('content')
-
-{{-- CUSTOM DASHBOARD STYLES --}}
 <style>
-    /* Hero Section */
-    .dashboard-hero {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        color: white;
-        border-radius: 20px;
-        padding: 3rem 2.5rem;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 2.5rem;
-        box-shadow: 0 10px 20px -5px rgba(30, 58, 138, 0.4);
-    }
-    .hero-pattern {
-        position: absolute;
-        top: 0; right: 0; bottom: 0; left: 0;
-        background-image: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0, transparent 25%);
-    }
+/* ========================================
+   USER DASHBOARD - HCI-ENHANCED DESIGN
+   ======================================== */
 
-    /* Credit Wallet Card */
-    .credit-wallet {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 1.5rem;
-        min-width: 250px;
-        color: white;
-    }
+/* Hero Section */
+.dashboard-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    color: white;
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+.hero-pattern {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background-image: radial-gradient(circle at 90% 10%, rgba(255,255,255,0.15) 0, transparent 40%);
+}
+.hero-greeting { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+.hero-subtitle { opacity: 0.85; font-size: 1rem; margin: 0; }
 
-    /* Action Cards */
-    .action-card {
-        border: none;
-        border-radius: 16px;
-        background: white;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid #f1f5f9;
-    }
-    .action-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.1);
-        border-color: #cbd5e1;
-    }
-    /* Colorful accent bars */
-    .action-bar { height: 4px; width: 100%; position: absolute; top: 0; left: 0; }
-    .bar-blue { background: #3b82f6; }
-    .bar-green { background: #10b981; }
-    .bar-purple { background: #8b5cf6; }
-    .bar-orange { background: #f59e0b; }
+/* Credit Wallet */
+.credit-wallet {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+}
+.credit-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+.credit-value { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+.credit-unit { font-size: 1rem; opacity: 0.7; }
 
-    .action-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        margin-bottom: 1rem;
-    }
-    .bg-blue-light { background: #eff6ff; color: #3b82f6; }
-    .bg-green-light { background: #ecfdf5; color: #10b981; }
-    .bg-purple-light { background: #f5f3ff; color: #8b5cf6; }
-    .bg-orange-light { background: #fffbeb; color: #f59e0b; }
+/* Quick Stats Row */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+@media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; transition: all 0.2s ease; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.stat-icon.total { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); color: #4f46e5; }
+.stat-icon.pending { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #d97706; }
+.stat-icon.approved { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #059669; }
+.stat-icon.rejected { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #dc2626; }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: #1e293b; line-height: 1; }
+.stat-label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
 
-    /* Notice Card */
-    .notice-card {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 1.25rem;
-        border: 1px dashed #cbd5e1;
-    }
+/* Action Cards */
+.action-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+.action-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+.action-bar { height: 4px; width: 100%; position: absolute; top: 0; left: 0; }
+.action-bar.blue { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.action-bar.green { background: linear-gradient(90deg, #10b981, #059669); }
+.action-bar.purple { background: linear-gradient(90deg, #8b5cf6, #6d28d9); }
+.action-bar.orange { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.action-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+.action-icon.blue { background: #eff6ff; color: #3b82f6; }
+.action-icon.green { background: #ecfdf5; color: #10b981; }
+.action-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+.action-icon.orange { background: #fffbeb; color: #f59e0b; }
+.action-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 0.375rem; }
+.action-desc { font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.4; }
+
+/* Sidebar Cards */
+.sidebar-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 1rem; }
+.sidebar-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+.sidebar-title { font-size: 0.9rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+.sidebar-title i { color: #3b82f6; }
+.sidebar-body { padding: 1rem 1.25rem; }
+
+/* Upcoming Booking Item */
+.booking-item { display: flex; align-items: center; gap: 1rem; padding: 0.875rem; background: #f8fafc; border-radius: 12px; margin-bottom: 0.75rem; transition: all 0.2s ease; }
+.booking-item:last-child { margin-bottom: 0; }
+.booking-item:hover { background: #f1f5f9; }
+.booking-date { width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.booking-date .day { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.booking-date .month { font-size: 0.65rem; text-transform: uppercase; opacity: 0.9; }
+.booking-info { flex: 1; min-width: 0; }
+.booking-facility { font-weight: 600; color: #1e293b; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.booking-time { font-size: 0.8rem; color: #64748b; }
+.booking-action { flex-shrink: 0; }
+.btn-ticket { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; color: #64748b; text-decoration: none; transition: all 0.2s ease; }
+.btn-ticket:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+/* Pending Badge */
+.pending-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; margin-bottom: 0.5rem; }
+.pending-item:last-child { margin-bottom: 0; }
+.pending-icon { width: 32px; height: 32px; background: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #d97706; }
+.pending-info { flex: 1; }
+.pending-facility { font-weight: 600; color: #92400e; font-size: 0.85rem; }
+.pending-status { font-size: 0.75rem; color: #b45309; }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 1.5rem; color: #94a3b8; }
+.empty-state i { font-size: 2rem; opacity: 0.5; margin-bottom: 0.5rem; }
+.empty-state p { font-size: 0.85rem; margin: 0; }
+
+/* Security Card */
+.security-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
+.security-label { color: #64748b; font-size: 0.85rem; }
+.security-value { font-weight: 600; color: #1e293b; font-size: 0.85rem; }
+.security-badge { display: flex; align-items: center; gap: 0.5rem; color: #059669; font-size: 0.85rem; padding: 0.75rem 0; border-top: 1px solid #f1f5f9; margin-top: 0.5rem; }
 </style>
 
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-11">
             
-            {{-- 1. HERO BANNER --}}
+            <!-- HERO BANNER -->
             <div class="dashboard-hero d-flex flex-wrap justify-content-between align-items-center gap-4">
-                <div class="hero-pattern"></div> <!-- Decorative -->
+                <div class="hero-pattern"></div>
                 
                 <div class="position-relative z-1">
                     <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 mb-2 px-3 py-2 rounded-pill">
-                        Student Portal v2.0
+                        <i class="bi bi-star-fill me-1"></i> Student Portal
                     </span>
-                    <h1 class="fw-bold display-6 mb-1">Welcome, {{ explode(' ', Auth::user()->name)[0] }}!</h1>
-                    <p class="mb-0 opacity-75 fs-5">Ready to book your next study session?</p>
+                    <h1 class="hero-greeting">Welcome back, {{ explode(' ', Auth::user()->name)[0] }}!</h1>
+                    <p class="hero-subtitle">Here's an overview of your facility bookings</p>
                 </div>
 
-                {{-- Credit Wallet Widget --}}
-                <div class="credit-wallet text-end position-relative z-1">
-                    <small class="text-uppercase fw-bold opacity-75" style="letter-spacing: 1px;">Balance</small>
-                    <div class="d-flex align-items-center justify-content-end gap-2 mt-1">
-                        <i class="bi bi-wallet2 fs-3 opacity-50"></i>
-                        <h2 class="mb-0 fw-bold display-5">{{ Auth::user()->credits }}</h2>
-                        <span class="fs-5 opacity-75">CR</span>
+                <!-- Credit Wallet -->
+                <div class="credit-wallet position-relative z-1">
+                    <div class="credit-label">Credit Balance</div>
+                    <div class="d-flex align-items-baseline justify-content-center gap-1 mt-1">
+                        <span class="credit-value">{{ Auth::user()->credits }}</span>
+                        <span class="credit-unit">CR</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK STATS ROW (HCI: Visibility of System Status) -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon total"><i class="bi bi-calendar2-week"></i></div>
+                    <div>
+                        <div class="stat-value">{{ $stats['total'] ?? 0 }}</div>
+                        <div class="stat-label">Total Bookings</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon pending"><i class="bi bi-hourglass-split"></i></div>
+                    <div>
+                        <div class="stat-value">{{ $stats['pending'] ?? 0 }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon approved"><i class="bi bi-check-circle-fill"></i></div>
+                    <div>
+                        <div class="stat-value">{{ $stats['approved'] ?? 0 }}</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon rejected"><i class="bi bi-x-circle-fill"></i></div>
+                    <div>
+                        <div class="stat-value">{{ $stats['rejected'] ?? 0 }}</div>
+                        <div class="stat-label">Rejected</div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4">
                 
-                {{-- 2. MAIN ACTIONS GRID --}}
+                <!-- MAIN ACTIONS -->
                 <div class="col-lg-8">
-                    <h5 class="fw-bold text-dark mb-3 ps-1">Quick Actions</h5>
-                    <div class="row g-4">
+                    <h5 class="fw-bold text-dark mb-3">Quick Actions</h5>
+                    <div class="row g-3">
                         
-                        <!-- Card 1: Book Facility -->
+                        <!-- Book Facility -->
                         <div class="col-md-6">
-                            <a href="{{ route('facilities.index') }}" class="text-decoration-none">
-                                <div class="action-card p-4">
-                                    <div class="action-bar bar-blue"></div>
-                                    <div class="action-icon bg-blue-light">
-                                        <i class="bi bi-calendar-plus"></i>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-1">Book a Facility</h5>
-                                    <p class="text-muted small mb-0">Reserve labs, discussion rooms, and halls instantly.</p>
-                                </div>
+                            <a href="{{ route('facilities.index') }}" class="action-card">
+                                <div class="action-bar blue"></div>
+                                <div class="action-icon blue"><i class="bi bi-calendar-plus"></i></div>
+                                <h5 class="action-title">Book a Facility</h5>
+                                <p class="action-desc">Reserve labs, rooms, and halls for your activities.</p>
                             </a>
                         </div>
 
-                        <!-- Card 2: My History -->
+                        <!-- My History -->
                         <div class="col-md-6">
-                            <a href="{{ route('history') }}" class="text-decoration-none">
-                                <div class="action-card p-4">
-                                    <div class="action-bar bar-green"></div>
-                                    <div class="action-icon bg-green-light">
-                                        <i class="bi bi-clock-history"></i>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-1">My History</h5>
-                                    <p class="text-muted small mb-0">Track your past bookings and upcoming schedules.</p>
-                                </div>
+                            <a href="{{ route('history') }}" class="action-card">
+                                <div class="action-bar green"></div>
+                                <div class="action-icon green"><i class="bi bi-clock-history"></i></div>
+                                <h5 class="action-title">Booking History</h5>
+                                <p class="action-desc">View past bookings and download tickets.</p>
                             </a>
                         </div>
 
-                        <!-- Card 3: Profile -->
+                        <!-- Profile -->
                         <div class="col-md-6">
-                            <a href="{{ route('profile') }}" class="text-decoration-none">
-                                <div class="action-card p-4">
-                                    <div class="action-bar bar-purple"></div>
-                                    <div class="action-icon bg-purple-light">
-                                        <i class="bi bi-person-circle"></i>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-1">My Profile</h5>
-                                    <p class="text-muted small mb-0">Manage account settings and preferences.</p>
-                                </div>
+                            <a href="{{ route('profile.show') }}" class="action-card">
+                                <div class="action-bar purple"></div>
+                                <div class="action-icon purple"><i class="bi bi-person-circle"></i></div>
+                                <h5 class="action-title">My Profile</h5>
+                                <p class="action-desc">Manage your account settings and info.</p>
                             </a>
                         </div>
 
-                        <!-- Card 4: Search Records -->
+                        <!-- Search Records -->
                         <div class="col-md-6">
-                            <a href="{{ route('history.search') }}" class="text-decoration-none">
-                                <div class="action-card p-4">
-                                    <div class="action-bar bar-orange"></div>
-                                    <div class="action-icon bg-orange-light">
-                                        <i class="bi bi-search"></i>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-1">Search Records</h5>
-                                    <p class="text-muted small mb-0">Find specific transactions or receipts.</p>
-                                </div>
+                            <a href="{{ route('history.search') }}" class="action-card">
+                                <div class="action-bar orange"></div>
+                                <div class="action-icon orange"><i class="bi bi-search"></i></div>
+                                <h5 class="action-title">Search Records</h5>
+                                <p class="action-desc">Find specific bookings or receipts.</p>
                             </a>
                         </div>
                     </div>
                 </div>
 
-                {{-- 3. SIDEBAR NOTICES --}}
+                <!-- SIDEBAR -->
                 <div class="col-lg-4">
-                    <h5 class="fw-bold text-dark mb-3 ps-1">Updates & Info</h5>
                     
-                    <!-- Notice 1 -->
-                    <div class="notice-card mb-3">
-                        <div class="d-flex gap-3">
-                            <i class="bi bi-info-circle-fill text-primary fs-4"></i>
-                            <div>
-                                <h6 class="fw-bold text-dark mb-1">Weekly Reset</h6>
-                                <p class="text-muted small mb-0" style="line-height: 1.4;">
-                                    Your booking credits will automatically reset to <strong>10</strong> every Sunday at midnight.
-                                </p>
-                            </div>
+                    <!-- Upcoming Bookings (HCI: Recognition over Recall) -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <h5 class="sidebar-title"><i class="bi bi-calendar-event"></i> Upcoming Bookings</h5>
+                            <span class="badge bg-primary">{{ count($upcomingBookings ?? []) }}</span>
+                        </div>
+                        <div class="sidebar-body">
+                            @forelse($upcomingBookings ?? [] as $booking)
+                                <div class="booking-item">
+                                    <div class="booking-date">
+                                        <span class="day">{{ \Carbon\Carbon::parse($booking->start_time)->format('d') }}</span>
+                                        <span class="month">{{ \Carbon\Carbon::parse($booking->start_time)->format('M') }}</span>
+                                    </div>
+                                    <div class="booking-info">
+                                        <div class="booking-facility">{{ $booking->facility->name ?? 'Unknown' }}</div>
+                                        <div class="booking-time">
+                                            <i class="bi bi-clock"></i>
+                                            {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
+                                        </div>
+                                    </div>
+                                    <div class="booking-action">
+                                        <a href="{{ route('booking.ticket', $booking->id) }}" class="btn-ticket" title="Download Ticket">
+                                            <i class="bi bi-ticket-perforated"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="empty-state">
+                                    <i class="bi bi-calendar-x"></i>
+                                    <p>No upcoming bookings</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
 
+                    <!-- Pending Approval (HCI: Visibility of System Status) -->
+                    @if(count($pendingBookings ?? []) > 0)
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <h5 class="sidebar-title"><i class="bi bi-hourglass-split" style="color: #d97706 !important;"></i> Awaiting Approval</h5>
+                        </div>
+                        <div class="sidebar-body">
+                            @foreach($pendingBookings as $pending)
+                                <div class="pending-item">
+                                    <div class="pending-icon"><i class="bi bi-clock"></i></div>
+                                    <div class="pending-info">
+                                        <div class="pending-facility">{{ $pending->facility->name ?? 'Unknown' }}</div>
+                                        <div class="pending-status">Submitted {{ $pending->created_at->diffForHumans() }}</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Security Status -->
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4">
-                            <h6 class="fw-bold text-secondary text-uppercase small mb-3 ls-1">Security Status</h6>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="text-muted small">Last Login</span>
-                                <span class="fw-bold text-dark small">
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <h5 class="sidebar-title"><i class="bi bi-shield-check" style="color: #059669 !important;"></i> Security</h5>
+                        </div>
+                        <div class="sidebar-body">
+                            <div class="security-item">
+                                <span class="security-label">Last Login</span>
+                                <span class="security-value">
                                     {{ Auth::user()->last_login_at ? \Carbon\Carbon::parse(Auth::user()->last_login_at)->diffForHumans() : 'Just now' }}
                                 </span>
                             </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small">Current IP</span>
-                                <code class="bg-light px-2 py-1 rounded text-primary fw-bold">{{ request()->ip() }}</code>
+                            <div class="security-item">
+                                <span class="security-label">Current IP</span>
+                                <code class="bg-light px-2 py-1 rounded text-primary">{{ request()->ip() }}</code>
                             </div>
-
-                            <hr class="my-3 opacity-25">
-                            
-                            <div class="d-flex align-items-center text-success small">
-                                <i class="bi bi-shield-check me-2 fs-5"></i>
+                            <div class="security-badge">
+                                <i class="bi bi-shield-fill-check"></i>
                                 <span>Account is secure</span>
                             </div>
                         </div>
