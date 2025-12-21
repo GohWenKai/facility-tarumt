@@ -37,7 +37,9 @@
                 @if($facility->image_path)
                     <img src="{{ asset('storage/' . $facility->image_path) }}" class="img-fluid w-100 object-fit-cover" alt="{{ $facility->name }}">
                 @else
-                    <img src="https://via.placeholder.com/600x400?text=No+Image" class="img-fluid w-100">
+                    <div class="w-100 h-100 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-card-image fs-1 text-muted opacity-50"></i>
+                    </div>
                 @endif
             </div>
             
