@@ -54,6 +54,10 @@ class AuthService
         }
 
         // 4. Success Logic (Credits & Updates)
+        
+        // Regenerate session ID to prevent session fixation attacks (5.1.1)
+        session()->regenerate();
+        
         $user = Auth::user();
         
         // Credit Logic

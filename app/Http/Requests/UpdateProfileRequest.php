@@ -19,7 +19,19 @@ class UpdateProfileRequest extends FormRequest
             'address' => 'required|string|max:2000',
             'tel' => ['required', 'string', 'max:15', 'regex:/^\+60\d{9,10}$/'],
             'current_password' => 'nullable|required_with:new_password',
-            'new_password' => 'nullable|min:8|confirmed',
+            'new_password' => [
+                'nullable',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+=\[\]{}|\\:";\'<>,.\/~`-]).+$/'
+            ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol (!@#$%).',
         ];
     }
 }

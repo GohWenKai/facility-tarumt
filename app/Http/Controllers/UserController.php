@@ -128,7 +128,16 @@ class UserController extends Controller
             'role'      => 'required|string|in:student,lecturer', 
             'tel'       => 'required|string|max:15',
             'address'   => 'required|string|max:255',
-            'password'  => 'required|string|min:8|confirmed', // expects password_confirmation field
+            // Password complexity: min 8 chars, uppercase, lowercase, number, symbol (5.1.1)
+            'password'  => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+=\[\]{}|\\:";\'<>,.\/~`-]).+$/'
+            ],
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol (!@#$%).',
         ]);
 
         // Create the User

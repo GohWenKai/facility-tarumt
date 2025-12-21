@@ -17,6 +17,16 @@ class AdminBookingController extends Controller
         $this->bookingService = $service;
     }
 
+    /**
+     * Defense-in-depth: Verify admin role even if middleware fails
+     */
+    private function authorizeAdmin(): void
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized: Admin access required.');
+        }
+    }
+
     public function bookings()
     {
         // Auto-update overdue bookings before showing list
@@ -32,6 +42,8 @@ class AdminBookingController extends Controller
     // ACTION 1: APPROVE
     public function approve($id)
     {
+        $this->authorizeAdmin();
+        
         try {
             $booking = Booking::with('user', 'facility')->findOrFail($id);
             
@@ -52,6 +64,8 @@ class AdminBookingController extends Controller
     // ACTION 2: REJECT
     public function reject($id)
     {
+        $this->authorizeAdmin();
+        
         try {
             $booking = Booking::with('user')->findOrFail($id);
             
@@ -71,6 +85,8 @@ class AdminBookingController extends Controller
     // ACTION 3: CHECK-IN (Via QR Code / Scanner)
     public function checkin($id)
     {
+        $this->authorizeAdmin();
+        
         try {
             $booking = Booking::with(['user', 'facility'])->findOrFail($id);
             
@@ -90,6 +106,8 @@ class AdminBookingController extends Controller
 
     public function show($id)
     {
+        $this->authorizeAdmin();
+        
         $booking = Booking::with(['user', 'facility'])->findOrFail($id);
         return view('admin.bookings.show', compact('booking'));
     }
