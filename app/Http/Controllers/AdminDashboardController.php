@@ -5,24 +5,31 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Services\AdminDashboardService;
+use App\Services\BookingService;
 use App\Adapters\ChartJsAdapter;
 
 class AdminDashboardController extends Controller
 {
     protected $dashboardService;
     protected $chartAdapter;
+    protected $bookingService;
 
     // Dependency Injection (Service + Adapter)
     public function __construct(
         AdminDashboardService $dashboardService, 
-        ChartJsAdapter $chartAdapter
+        ChartJsAdapter $chartAdapter,
+        BookingService $bookingService
     ) {
         $this->dashboardService = $dashboardService;
         $this->chartAdapter = $chartAdapter;
+        $this->bookingService = $bookingService;
     }
 
     public function show(Request $request)
     {
+        // 0. Auto-update overdue bookings
+        $this->bookingService->updateOverdueBookings();
+
         // 1. Determine Date
         $selectedDate = $request->input('date') 
             ? Carbon::parse($request->date)->format('Y-m-d') 
