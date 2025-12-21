@@ -104,6 +104,20 @@
                                     </div>
                                 </div>
                             </div>
+
+                            @if($booking->special_reason)
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-warning d-flex align-items-start gap-3">
+                                        <i class="bi bi-exclamation-circle-fill fs-4 mt-1"></i>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Special Reason Given:</h6>
+                                            <p class="mb-0">{{ $booking->special_reason }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
