@@ -76,4 +76,16 @@ class UserProfileController extends Controller
 
         return back()->with('success', 'Profile updated successfully!');
     }
+
+    /**
+     * Get User Credits (AJAX API - Section 6.1.9)
+     * Returns the authenticated user's current credit balance
+     */
+    public function getCredits()
+    {
+        return response()->json([
+            'status' => 'success',
+            'credits' => Auth::user()->credits
+        ]);
+    }
 }
