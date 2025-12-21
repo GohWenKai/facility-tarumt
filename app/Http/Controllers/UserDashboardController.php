@@ -9,13 +9,24 @@ use App\Models\Announcement;
 use App\Models\Notification;
 use Carbon\Carbon;
 
+use App\Services\BookingService;
+
 class UserDashboardController extends Controller
 {
+    protected $bookingService;
+
+    public function __construct(BookingService $service)
+    {
+        $this->bookingService = $service;
+    }
     /**
      * Display the user dashboard with stats and upcoming bookings.
      */
     public function show()
     {
+        // Auto-update overdue bookings
+        $this->bookingService->updateOverdueBookings();
+
         $user = Auth::user();
         
         // Get booking statistics
