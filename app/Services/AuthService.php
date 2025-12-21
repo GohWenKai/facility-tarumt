@@ -16,7 +16,7 @@ class AuthService
     {
         // 1. Verify CAPTCHA (Logic moved here)
         $verify = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret'   => '6Lcj1BQsAAAAALI4cMfean4juiWezLiXLuG3kjWH',
+            'secret'   => config('services.recaptcha.secret'),
             'response' => $captchaResponse,
             'remoteip' => $ip
         ]);
@@ -25,15 +25,31 @@ class AuthService
             return ['status' => 403, 'message' => 'Captcha verification failed.'];
         }
 
-        // 2. Check Lockout (Logic moved here)
+        // 2. Check Lockout with Time-Based Unlock (15 minutes)
         $user = User::where('tarumt_id', $tarumt_id)->first();
         if ($user && $user->failed_login_attempts >= 5) {
-            return ['status' => 403, 'message' => 'Account locked. Contact admin.'];
+            // Check if lockout period has expired
+            if ($user->locked_until && Carbon::now()->lt($user->locked_until)) {
+                $remainingMinutes = (int) ceil(Carbon::now()->diffInSeconds($user->locked_until) / 60);
+                return ['status' => 403, 'message' => "Account locked. Try again in {$remainingMinutes} minutes."];
+            } else {
+                // Lockout period expired - reset attempts
+                $user->update([
+                    'failed_login_attempts' => 0,
+                    'locked_until' => null
+                ]);
+            }
         }
 
         // 3. Attempt Auth
         if (!Auth::attempt(['tarumt_id' => $tarumt_id, 'password' => $password])) {
-            if ($user) $user->increment('failed_login_attempts');
+            if ($user) {
+                $user->increment('failed_login_attempts');
+                // Lock account after 5 failed attempts
+                if ($user->failed_login_attempts >= 5) {
+                    $user->update(['locked_until' => Carbon::now()->addMinutes(15)]);
+                }
+            }
             return ['status' => 401, 'message' => 'Invalid credentials.'];
         }
 

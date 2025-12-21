@@ -24,11 +24,7 @@ Route::get('/verify-otp', [AuthController::class, 'showVerifyOtp'])->name('verif
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp.submit');
 Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('verify-otp.resend');
 
-// 1. PUBLIC ROUTES (Guest only)
-Route::middleware('guest')->group(function () {
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-});
+// Registration is handled by Admin - see admin.users.create route
 
 // 2. SHARED ROUTES (Anyone logged in)
 Route::middleware('auth')->group(function () {

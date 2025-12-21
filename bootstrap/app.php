@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin.ip' => \App\Http\Middleware\AdminIpWhitelist::class,
+            'ifa' => \App\Http\Middleware\IFACompliance::class,
         ]);
 
     })

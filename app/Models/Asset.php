@@ -8,18 +8,4 @@ class Asset extends Model {
     public function facility() {
         return $this->belongsTo(Facility::class);
     }
-
-    public function up()
-    {
-        Schema::table('assets', function (Blueprint $table) {
-            $table->text('maintenance_note')->nullable()->after('condition');
-        });
-    }
-
-    public function down()
-    {
-        Schema::table('assets', function (Blueprint $table) {
-            $table->dropColumn('maintenance_note');
-        });
-    }
 }

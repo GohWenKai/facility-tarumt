@@ -29,6 +29,7 @@ class User extends Authenticatable
         'ip_address',             // Security tracking
         'last_login_at',          // Security tracking
         'failed_login_attempts',  // Rate limiting logic
+        'locked_until',           // Time-based account unlock
         'address',
         'tel',
         // 2FA Fields
@@ -57,6 +58,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime', // Auto-convert to Carbon object
+            'locked_until' => 'datetime',   // Time-based account unlock
             'credits' => 'integer',
             'two_factor_enabled' => 'boolean',
             'two_factor_expires_at' => 'datetime',

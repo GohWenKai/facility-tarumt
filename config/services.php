@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Google reCAPTCHA Configuration
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY', '6Lcj1BQsAAAAAFa-4mbexFmBhpZeLsoJvV4oDqOu'),
+        'secret' => env('RECAPTCHA_SECRET_KEY', '6Lcj1BQsAAAAALI4cMfean4juiWezLiXLuG3kjWH'),
+    ],
+
 ];

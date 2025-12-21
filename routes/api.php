@@ -6,16 +6,15 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\AuthApiController;
-use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Api\HolidayController;
 
 // ============================================================
 // PUBLIC API ROUTES (No Authentication Required)
 // ============================================================
 
-// REST API - JSON Login
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// REST API - JSON Login with IFA Compliance (Registration handled by Admin only)
+Route::post('/login', [AuthController::class, 'login'])->middleware('ifa');
 
 // Public Holiday API (No auth required - for frontend date picker)
 Route::get('/holidays/{year}', [HolidayController::class, 'index']);
@@ -36,8 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/facilities/search', [FacilityController::class, 'search']);
     Route::get('/user', function (Request $request) {
         return $request->user();
+    });
 
     Route::get('/search', [SearchController::class, 'search'])
-        ->middleware('throttle:100,1'); 
-    });
+        ->middleware('throttle:100,1');
 });
