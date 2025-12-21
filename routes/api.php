@@ -25,18 +25,24 @@ Route::get('/holidays/check/{date}', [HolidayController::class, 'check']);
 // ============================================================
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Logout
-    Route::post('/logout', [AuthController::class, 'logout']);
+    // Logout - IFA COMPLIANT
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->middleware('ifa');
     
-    // Module 2: Get User Credits (AJAX)
-    Route::get('/user/credits', [UserProfileController::class, 'getCredits']);
+    // Module 2: Get User Credits (AJAX) - IFA COMPLIANT
+    Route::get('/user/credits', [UserProfileController::class, 'getCredits'])
+        ->middleware('ifa');
 
-    // Module 3: Live Search API
-    Route::get('/facilities/search', [FacilityController::class, 'search']);
+    // Module 3: Live Search API - IFA COMPLIANT
+    Route::get('/facilities/search', [FacilityController::class, 'search'])
+        ->middleware('ifa');
+    
+    // Get authenticated user - IFA COMPLIANT
     Route::get('/user', function (Request $request) {
         return $request->user();
-    });
+    })->middleware('ifa');
 
+    // Booking search - IFA COMPLIANT
     Route::get('/search', [SearchController::class, 'search'])
-        ->middleware('throttle:100,1');
+        ->middleware(['ifa', 'throttle:100,1']);
 });
