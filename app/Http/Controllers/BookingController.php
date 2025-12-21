@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\BookingService; // Logic Engine
 use App\Adapters\XmlTicketAdapter; // XML Parser
+use App\Models\Booking; // Added: was missing - needed for history()
 
 class BookingController extends Controller
 {
