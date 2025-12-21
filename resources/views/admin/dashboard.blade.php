@@ -89,79 +89,297 @@
 
     /* Highlights */
     .is-today .sticky-date-col { background: #eff6ff; color: #2563eb; border-right: 2px solid #2563eb; }
+
+    /* ==================== PREMIUM STAT CARDS ==================== */
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 3rem;
+        opacity: 0.2;
+    }
+    .stat-content {
+        position: relative;
+        z-index: 1;
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .stat-label {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+    .stat-trend {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        opacity: 0.85;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .stat-trend i {
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="container-fluid px-4 py-4" style="background-color: #f8fafc; min-height: 100vh;">
 
-    {{-- ================================================================================= --}}
-    {{-- SECTION 1: ANALYTICS (Chart)                                                      --}}
-    {{-- ================================================================================= --}}
-    <div class="row">
-        <!-- Analytics Chart -->
-        <div class="col-lg-8">
-            <div class="dashboard-card h-100">
-                <div class="dashboard-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="fw-bold text-dark m-0">
-                            <i class="bi bi-bar-chart-fill text-primary me-2"></i>Analytics Overview
-                        </h5>
-                        <small class="text-muted">Top 5 most booked facilities</small>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div style="height: 300px; width: 100%;">
-                        <canvas id="popularityChart"></canvas>
-                    </div>
-                </div>
+{{-- ================================================================================= --}}
+{{-- SECTION 0: STATISTICS CARDS (Premium Design)                                       --}}
+{{-- ================================================================================= --}}
+<div class="row g-4 mb-4">
+    <!-- Total Bookings -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="stat-icon">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="stat-content">
+                <h2 class="stat-number">{{ $statistics['total_bookings'] }}</h2>
+                <p class="stat-label">Total Bookings</p>
+            </div>
+            <div class="stat-trend">
+                <i class="bi bi-arrow-up-right"></i>
+                <span>+{{ $statistics['monthly_bookings'] }} this month</span>
             </div>
         </div>
+    </div>
 
-        <!-- Security/Activity Feed -->
-        <div class="col-lg-4">
-            <div class="dashboard-card h-100">
-                <div class="dashboard-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="fw-bold text-dark m-0">
-                            <i class="bi bi-shield-check text-success me-2"></i>Recent Activity
-                        </h5>
-                        <small class="text-muted">Live security feed</small>
-                    </div>
-                    <a href="{{ route('admin.audit_logs.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    <!-- Today's Bookings -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            <div class="stat-icon">
+                <i class="bi bi-calendar-day"></i>
+            </div>
+            <div class="stat-content">
+                <h2 class="stat-number">{{ $statistics['today_bookings'] }}</h2>
+                <p class="stat-label">Today's Bookings</p>
+            </div>
+            <div class="stat-trend">
+                <i class="bi bi-clock"></i>
+                <span>{{ now()->format('d M Y') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approval -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="stat-icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-content">
+                <h2 class="stat-number">{{ $statistics['pending_bookings'] }}</h2>
+                <p class="stat-label">Pending Approval</p>
+            </div>
+            <div class="stat-trend">
+                <a href="{{ route('bookings.approval') }}" class="text-white text-decoration-none">
+                    <i class="bi bi-arrow-right-circle"></i> View All
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Users -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="stat-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-content">
+                <h2 class="stat-number">{{ $statistics['total_users'] }}</h2>
+                <p class="stat-label">Active Users</p>
+            </div>
+            <div class="stat-trend">
+                <i class="bi bi-building"></i>
+                <span>{{ $statistics['total_facilities'] }} Facilities</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ================================================================================= --}}
+{{-- SECTION 1: ANALYTICS CHARTS (Premium Multi-Chart Layout)                          --}}
+{{-- ================================================================================= --}}
+<div class="row g-4 mb-4">
+    <!-- Weekly Trends (Line Chart) -->
+    <div class="col-lg-8">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark m-0">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Booking Trends
+                    </h5>
+                    <small class="text-muted">Last 7 days activity</small>
                 </div>
-                <div class="list-group list-group-flush">
-                    @forelse($recentLogs as $log)
-                        <div class="list-group-item px-3 py-3">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <small class="fw-bold text-dark">{{ $log->user->name ?? 'System' }}</small>
-                                <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                @php
-                                    $icon = match($log->action) {
-                                        'created' => 'bi-plus-circle text-success',
-                                        'updated' => 'bi-pencil text-warning',
-                                        'deleted' => 'bi-trash text-danger',
-                                        'restored' => 'bi-arrow-counterclockwise text-primary',
-                                        default => 'bi-activity text-secondary'
-                                    };
-                                @endphp
-                                <i class="bi {{ $icon }} me-2"></i>
-                                <span class="text-muted small">
-                                    {{ ucfirst($log->action) }} 
-                                    <strong>{{ class_basename($log->model_type) }} #{{ $log->model_id }}</strong>
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-4 text-muted">
-                            <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
-                            No recent activity
-                        </div>
-                    @endforelse
+                <div class="d-flex gap-2">
+                    @php
+                        $change = $monthlyComparison['this_month'] - $monthlyComparison['last_month'];
+                        $changePercent = $monthlyComparison['last_month'] > 0 
+                            ? round(($change / $monthlyComparison['last_month']) * 100) 
+                            : 0;
+                    @endphp
+                    <span class="badge {{ $change >= 0 ? 'bg-success' : 'bg-danger' }} bg-opacity-75 px-3 py-2">
+                        <i class="bi bi-{{ $change >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
+                        {{ abs($changePercent) }}% vs last month
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="weeklyTrendsChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Status Distribution (Doughnut) -->
+    <div class="col-lg-4">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header">
+                <h5 class="fw-bold text-dark m-0">
+                    <i class="bi bi-pie-chart text-warning me-2"></i>Booking Status
+                </h5>
+                <small class="text-muted">Distribution by status</small>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div style="height: 260px; width: 260px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Popular Facilities (Bar Chart) -->
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header">
+                <h5 class="fw-bold text-dark m-0">
+                    <i class="bi bi-bar-chart-fill text-primary me-2"></i>Popular Facilities
+                </h5>
+                <small class="text-muted">Top 5 most booked</small>
+            </div>
+            <div class="card-body">
+                <div style="height: 280px;">
+                    <canvas id="popularityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peak Hours (Bar Chart) -->
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header">
+                <h5 class="fw-bold text-dark m-0">
+                    <i class="bi bi-clock-history text-success me-2"></i>Peak Hours
+                </h5>
+                <small class="text-muted">Busiest booking times</small>
+            </div>
+            <div class="card-body">
+                <div style="height: 280px;">
+                    <canvas id="peakHoursChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- User Distribution (Doughnut) -->
+    <div class="col-lg-4">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header">
+                <h5 class="fw-bold text-dark m-0">
+                    <i class="bi bi-people-fill text-info me-2"></i>User Breakdown
+                </h5>
+                <small class="text-muted">Students vs Lecturers</small>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div style="height: 220px; width: 220px;">
+                    <canvas id="userRolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security/Activity Feed -->
+    <div class="col-lg-8">
+        <div class="dashboard-card h-100">
+            <div class="dashboard-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark m-0">
+                        <i class="bi bi-shield-check text-success me-2"></i>Recent Activity
+                    </h5>
+                    <small class="text-muted">Live security feed</small>
+                </div>
+                <a href="{{ route('admin.audit_logs.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="list-group list-group-flush" style="max-height: 280px; overflow-y: auto;">
+                @forelse($recentLogs as $log)
+                    <div class="list-group-item px-3 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <small class="fw-bold text-dark">{{ $log->user->name ?? 'System' }}</small>
+                            <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            @php
+                                $icon = match($log->action) {
+                                    'created' => 'bi-plus-circle text-success',
+                                    'updated' => 'bi-pencil text-warning',
+                                    'deleted' => 'bi-trash text-danger',
+                                    'restored' => 'bi-arrow-counterclockwise text-primary',
+                                    default => 'bi-activity text-secondary'
+                                };
+                            @endphp
+                            <i class="bi {{ $icon }} me-2"></i>
+                            <span class="text-muted small">
+                                {{ ucfirst($log->action) }} 
+                                <strong>{{ class_basename($log->model_type) }} #{{ $log->model_id }}</strong>
+                            </span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
+                        No recent activity
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
 
     {{-- ================================================================================= --}}
     {{-- SECTION 2: BOOKING SCHEDULE (Main Tool)                                           --}}
@@ -389,35 +607,130 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Chart Logic
-        const ctx = document.getElementById('popularityChart').getContext('2d');
-        const labels = @json($chartLabels);
-        const data = @json($chartData);
+        
+        // ==================== 1. WEEKLY TRENDS (Line Chart) ====================
+        const weeklyCtx = document.getElementById('weeklyTrendsChart').getContext('2d');
+        const weeklyGradient = weeklyCtx.createLinearGradient(0, 0, 0, 300);
+        weeklyGradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+        weeklyGradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
 
-        new Chart(ctx, {
+        new Chart(weeklyCtx, {
+            type: 'line',
+            data: {
+                labels: @json($weeklyTrends['labels']),
+                datasets: [{
+                    label: 'Bookings',
+                    data: @json($weeklyTrends['data']),
+                    borderColor: '#6366f1',
+                    backgroundColor: weeklyGradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 1 }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ==================== 2. STATUS DISTRIBUTION (Doughnut) ====================
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: @json($statusDistribution['labels']),
+                datasets: [{
+                    data: @json($statusDistribution['data']),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15, usePointStyle: true }
+                    }
+                }
+            }
+        });
+
+        // ==================== 3. POPULAR FACILITIES (Bar Chart) ====================
+        new Chart(document.getElementById('popularityChart'), {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: @json($chartLabels),
                 datasets: [{
-                    label: 'Total Bookings',
-                    data: data,
+                    label: 'Bookings',
+                    data: @json($chartData),
                     backgroundColor: [
-                        'rgba(59, 130, 246, 0.7)', 
-                        'rgba(16, 185, 129, 0.7)', 
-                        'rgba(245, 158, 11, 0.7)', 
-                        'rgba(239, 68, 68, 0.7)',  
-                        'rgba(139, 92, 246, 0.7)'  
+                        'rgba(99, 102, 241, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(139, 92, 246, 0.8)'
                     ],
-                    borderColor: [
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(16, 185, 129, 1)',
-                        'rgba(245, 158, 11, 1)',
-                        'rgba(239, 68, 68, 1)',
-                        'rgba(139, 92, 246, 1)'
-                    ],
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    barPercentage: 0.5
+                    borderRadius: 8,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { 
+                        beginAtZero: true, 
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 1 }
+                    },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ==================== 4. PEAK HOURS (Gradient Bar Chart) ====================
+        const peakCtx = document.getElementById('peakHoursChart').getContext('2d');
+        const peakGradient = peakCtx.createLinearGradient(0, 0, 0, 280);
+        peakGradient.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+        peakGradient.addColorStop(1, 'rgba(16, 185, 129, 0.3)');
+
+        new Chart(peakCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($peakHours['labels']),
+                datasets: [{
+                    label: 'Bookings',
+                    data: @json($peakHours['data']),
+                    backgroundColor: peakGradient,
+                    borderRadius: 4,
+                    barPercentage: 0.7
                 }]
             },
             options: {
@@ -425,13 +738,45 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { stepSize: 1 } },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 1 }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { maxRotation: 45, minRotation: 45 }
+                    }
                 }
             }
         });
 
-        // 2. Live Clock
+        // ==================== 5. USER ROLES (Doughnut) ====================
+        new Chart(document.getElementById('userRolesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: @json($userRoles['labels']),
+                datasets: [{
+                    data: @json($userRoles['data']),
+                    backgroundColor: ['#3b82f6', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 12, usePointStyle: true }
+                    }
+                }
+            }
+        });
+
+        // ==================== 6. LIVE CLOCK ====================
         setInterval(() => {
             const now = new Date();
             const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });

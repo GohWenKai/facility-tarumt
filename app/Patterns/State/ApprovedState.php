@@ -3,6 +3,7 @@
 namespace App\Patterns\State;
 
 use App\Models\Booking;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use Exception;
 
@@ -15,7 +16,29 @@ class ApprovedState implements BookingState
 
     public function reject(Booking $booking)
     {
-        throw new Exception("Use the reject action instead.");
+        // 1. Delete the XML ticket if it exists
+        $xmlPath = "xml/{$booking->id}.xml";
+        if (Storage::exists($xmlPath)) {
+            Storage::delete($xmlPath);
+        }
+
+        // 2. Refund Credits to user
+        $booking->user->increment('credits', $booking->total_cost);
+
+        // 3. Update Status to rejected (revoked)
+        $booking->status = 'rejected';
+        $booking->save();
+
+        // 4. Create Notification for user
+        Notification::notify(
+            $booking->user_id,
+            'Booking Revoked/Cancelled',
+            "Your approved booking for {$booking->facility->name} has been revoked by admin. {$booking->total_cost} credits have been refunded.",
+            'warning',
+            route('history')
+        );
+
+        return "Booking Revoked. XML Ticket deleted and credits refunded.";
     }
 
     public function complete(Booking $booking)

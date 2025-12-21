@@ -309,7 +309,255 @@
                 </div>
             </div>
 
+            <!-- 3D STREET VIEW SECTION (Premium Design) -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="streetview-container">
+                        <div class="streetview-header">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="streetview-icon">
+                                    <i class="bi bi-camera-reels"></i>
+                                </div>
+                                <div>
+                                    <h5 class="m-0 fw-bold">360° Street View</h5>
+                                    <small>TARUMT Kampar Campus, Perak</small>
+                                </div>
+                            </div>
+                            <div class="streetview-badge">
+                                <i class="bi bi-hand-index-thumb"></i>
+                                <span>Drag to look around</span>
+                            </div>
+                        </div>
+                        <div class="streetview-wrapper">
+                            <!-- Google Street View Embed -->
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!4v1703152800000!6m8!1m7!1sCAoSLEFGMVFpcE9ZN0s5VXdMRm5jN1NmNU15Y0xGelBrblVfWWJPX0tMRkVGNjNM!2m2!1d4.329243!2d101.143015!3f0!4f0!5f0.7820865974627469"
+                                width="100%" 
+                                height="100%" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                            
+                            <!-- Overlay Controls -->
+                            <div class="streetview-overlay">
+                                <div class="view-mode-tabs">
+                                    <button class="view-tab active" onclick="switchView('street')">
+                                        <i class="bi bi-camera-reels"></i> Street View
+                                    </button>
+                                    <button class="view-tab" onclick="switchView('satellite')">
+                                        <i class="bi bi-globe"></i> Satellite
+                                    </button>
+                                    <button class="view-tab" onclick="switchView('map')">
+                                        <i class="bi bi-map"></i> Map
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="streetview-info-panel">
+                            <div class="info-item">
+                                <i class="bi bi-building"></i>
+                                <span>TARUMT Kampar Campus</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-pin-map"></i>
+                                <span>Jalan Kolej, Taman Bandar Baru, 31900 Kampar, Perak</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-telephone"></i>
+                                <span>05-468 8888</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<style>
+/* ==================== STREET VIEW STYLES ==================== */
+.streetview-container {
+    background: #1a1a2e;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.streetview-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.streetview-header h5 {
+    color: white;
+}
+
+.streetview-header small {
+    color: rgba(255,255,255,0.6);
+}
+
+.streetview-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 20px rgba(240, 147, 251, 0.4);
+}
+
+.streetview-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.streetview-badge i {
+    animation: point 1s ease-in-out infinite;
+}
+
+@keyframes point {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(3px); }
+}
+
+.streetview-wrapper {
+    position: relative;
+    height: 450px;
+    background: #0a0a1a;
+}
+
+.streetview-wrapper iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* View Mode Overlay */
+.streetview-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.view-mode-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 0.25rem;
+    gap: 0.25rem;
+}
+
+.view-tab {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.view-tab:hover {
+    color: white;
+}
+
+.view-tab.active {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.streetview-info-panel {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.streetview-info-panel .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.streetview-info-panel .info-item i {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .streetview-info-panel {
+        flex-direction: column;
+        text-align: center;
+    }
+    .streetview-info-panel .info-item {
+        justify-content: center;
+    }
+    .streetview-wrapper {
+        height: 350px;
+    }
+    .streetview-badge {
+        display: none;
+    }
+}
+</style>
+
+<script>
+// View switching function
+function switchView(mode) {
+    const iframe = document.querySelector('.streetview-wrapper iframe');
+    const tabs = document.querySelectorAll('.view-tab');
+    
+    // Update active tab
+    tabs.forEach(tab => tab.classList.remove('active'));
+    event.target.closest('.view-tab').classList.add('active');
+    
+    // TARUMT Kampar coordinates
+    const lat = 4.329243;
+    const lng = 101.143015;
+    
+    switch(mode) {
+        case 'street':
+            // Street View panorama
+            iframe.src = `https://www.google.com/maps/embed?pb=!4v1703152800000!6m8!1m7!1sCAoSLEFGMVFpcE9ZN0s5VXdMRm5jN1NmNU15Y0xGelBrblVfWWJPX0tMRkVGNjNM!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`;
+            break;
+        case 'satellite':
+            // Satellite view
+            iframe.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1500!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNMKwMTknNDUuMyJOIDEwMcKwMDgnMzQuOSJF!5e1!3m2!1sen!2smy!4v1703152800000`;
+            break;
+        case 'map':
+            // Regular map view
+            iframe.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNMKwMTknNDUuMyJOIDEwMcKwMDgnMzQuOSJF!5e0!3m2!1sen!2smy!4v1703152800000`;
+            break;
+    }
+}
+</script>
 @endsection

@@ -16,6 +16,26 @@
             <a class="navbar-brand fw-bold" href="{{ url('/dashboard') }}">
                 <i class="bi bi-building"></i> TARUMT FBS
             </a>
+
+            <!-- Weather Widget (Premium Design) -->
+            <div id="weather-widget" class="d-none d-md-flex align-items-center me-3 px-3 py-1" 
+                 style="background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); 
+                        backdrop-filter: blur(10px); 
+                        border-radius: 50px; 
+                        border: 1px solid rgba(255,255,255,0.2);
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div class="weather-icon-wrapper" style="position: relative;">
+                    <img id="weather-icon" src="" alt="weather" style="width: 40px; height: 40px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                </div>
+                <div class="d-flex flex-column ms-2" style="line-height: 1.2;">
+                    <span id="weather-temp" class="fw-bold text-white" style="font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">--°C</span>
+                    <span id="weather-desc" class="text-white" style="font-size: 0.7rem; opacity: 0.9; text-transform: capitalize;"></span>
+                </div>
+                <div class="ms-2 ps-2" style="border-left: 1px solid rgba(255,255,255,0.3);">
+                    <i class="bi bi-geo-alt-fill text-white" style="opacity: 0.8; font-size: 0.75rem;"></i>
+                    <span class="text-white" style="font-size: 0.7rem; opacity: 0.8;">KL</span>
+                </div>
+            </div>
             
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto align-items-center">
@@ -91,5 +111,42 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+
+    <!-- Weather API Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiKey = 'f3b7f52ea2b25a034f98c0c721985f45';
+            const city = 'Kuala Lumpur';
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.cod === 200) {
+                        const temp = Math.round(data.main.temp);
+                        const desc = data.weather[0].description;
+                        const icon = data.weather[0].icon;
+                        
+                        document.getElementById('weather-temp').textContent = temp + '°C';
+                        document.getElementById('weather-desc').textContent = desc;
+                        document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+                        
+                        const widget = document.getElementById('weather-widget');
+                        widget.classList.remove('d-none');
+                        widget.classList.add('d-flex');
+                        
+                        // Add fade-in animation
+                        widget.style.opacity = '0';
+                        widget.style.transform = 'translateY(-10px)';
+                        widget.style.transition = 'all 0.5s ease';
+                        setTimeout(() => {
+                            widget.style.opacity = '1';
+                            widget.style.transform = 'translateY(0)';
+                        }, 100);
+                    }
+                })
+                .catch(err => console.log('Weather API error:', err));
+        });
+    </script>
 </body>
 </html>

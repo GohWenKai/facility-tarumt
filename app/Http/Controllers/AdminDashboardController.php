@@ -34,18 +34,32 @@ class AdminDashboardController extends Controller
         $rawChartData = $this->dashboardService->getPopularFacilitiesData();
         $recentLogs = $this->dashboardService->getRecentAuditLogs();
 
-        // 3. USE ADAPTER: Format Data for Frontend
-        // We convert the Database Collection into a specific Chart array format
+        // 3. NEW: Get Analytics Data
+        $statistics = $this->dashboardService->getStatistics();
+        $weeklyTrends = $this->dashboardService->getWeeklyTrends();
+        $statusDistribution = $this->dashboardService->getStatusDistribution();
+        $userRoles = $this->dashboardService->getUserRoleDistribution();
+        $monthlyComparison = $this->dashboardService->getMonthlyComparison();
+        $peakHours = $this->dashboardService->getPeakHours();
+
+        // 4. USE ADAPTER: Format Data for Frontend
         $chartPayload = $this->chartAdapter->adaptPopularFacilities($rawChartData);
 
-        // 4. Return View
+        // 5. Return View with ALL Data
         return view('admin.dashboard', [
             'facilities'   => $facilities,
             'selectedDate' => $selectedDate,
             'assets'       => $assets,
             'chartLabels'  => $chartPayload['labels'],
             'chartData'    => $chartPayload['data'],
-            'recentLogs'   => $recentLogs
+            'recentLogs'   => $recentLogs,
+            // NEW Analytics Data
+            'statistics'   => $statistics,
+            'weeklyTrends' => $weeklyTrends,
+            'statusDistribution' => $statusDistribution,
+            'userRoles'    => $userRoles,
+            'monthlyComparison' => $monthlyComparison,
+            'peakHours'    => $peakHours,
         ]);
     }
 }
