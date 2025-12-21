@@ -175,7 +175,7 @@
                         <div class="detail-item">
                             <span class="detail-label">Student Name</span>
                             <span class="detail-value text-primary">
-                                <i class="bi bi-person-fill me-1"></i> {{ $booking->user->name }}
+                                <i class="bi bi-person-fill me-1"></i> {{ optional($booking->user)->name ?? 'Unknown User' }}
                             </span>
                         </div>
                         
