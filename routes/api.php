@@ -7,6 +7,7 @@ use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\HolidayController;
 
 // ============================================================
 // PUBLIC API ROUTES (No Authentication Required)
@@ -15,6 +16,10 @@ use App\Http\Controllers\Api\SearchController;
 // REST API - JSON Login
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Public Holiday API (No auth required - for frontend date picker)
+Route::get('/holidays/{year}', [HolidayController::class, 'index']);
+Route::get('/holidays/check/{date}', [HolidayController::class, 'check']);
 
 // ============================================================
 // PROTECTED API ROUTES (Require Authentication)

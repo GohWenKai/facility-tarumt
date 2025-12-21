@@ -26,20 +26,34 @@
     background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
 
-/* Avatar */
-.profile-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 3px solid rgba(255, 255, 255, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
+/* Avatar - Premium Circular Design with Animated Ring */
+.profile-avatar-wrapper {
+    position: relative;
     margin-right: 1.5rem;
+}
+.profile-avatar-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #ef4444, #8b5cf6, #3b82f6, #10b981);
+    background-size: 300% 300%;
+    animation: avatarGlow 4s ease infinite;
+    z-index: 0;
+}
+@keyframes avatarGlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+.profile-avatar {
+    position: relative;
+    z-index: 1;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.9);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2);
+    object-fit: cover;
 }
 
 .profile-info h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
@@ -113,8 +127,11 @@
     
     <!-- Profile Header -->
     <div class="profile-header d-flex align-items-center">
-        <div class="profile-avatar">
-            {{ strtoupper(substr($user->name, 0, 1)) }}
+        <div class="profile-avatar-wrapper">
+            {{-- DiceBear Adventurer API - Generates unique cartoon avatars --}}
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed={{ urlencode($user->email) }}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" 
+                 alt="{{ $user->name }}" 
+                 class="profile-avatar">
         </div>
         <div class="profile-info">
             <h1>{{ $user->name }}</h1>

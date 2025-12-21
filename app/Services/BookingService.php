@@ -14,47 +14,12 @@ use App\Models\CreditTransaction;
 
 class BookingService
 {
-    // Malaysian Public Holidays (2024-2025)
-    private const MALAYSIAN_HOLIDAYS = [
-        // 2024
-        '2024-01-01' => 'New Year\'s Day',
-        '2024-01-25' => 'Thaipusam',
-        '2024-02-01' => 'Federal Territory Day',
-        '2024-02-10' => 'Chinese New Year',
-        '2024-02-11' => 'Chinese New Year (2nd Day)',
-        '2024-03-28' => 'Nuzul Al-Quran',
-        '2024-04-10' => 'Hari Raya Aidilfitri',
-        '2024-04-11' => 'Hari Raya Aidilfitri (2nd Day)',
-        '2024-05-01' => 'Labour Day',
-        '2024-05-22' => 'Wesak Day',
-        '2024-06-03' => 'King\'s Birthday',
-        '2024-06-17' => 'Hari Raya Haji',
-        '2024-07-07' => 'Awal Muharram',
-        '2024-08-31' => 'National Day',
-        '2024-09-16' => 'Malaysia Day',
-        '2024-09-16' => 'Prophet Muhammad\'s Birthday',
-        '2024-10-31' => 'Deepavali',
-        '2024-12-25' => 'Christmas Day',
-        // 2025
-        '2025-01-01' => 'New Year\'s Day',
-        '2025-01-14' => 'Thaipusam',
-        '2025-01-29' => 'Chinese New Year',
-        '2025-01-30' => 'Chinese New Year (2nd Day)',
-        '2025-02-01' => 'Federal Territory Day',
-        '2025-03-17' => 'Nuzul Al-Quran',
-        '2025-03-30' => 'Hari Raya Aidilfitri',
-        '2025-03-31' => 'Hari Raya Aidilfitri (2nd Day)',
-        '2025-05-01' => 'Labour Day',
-        '2025-05-12' => 'Wesak Day',
-        '2025-06-02' => 'King\'s Birthday',
-        '2025-06-06' => 'Hari Raya Haji',
-        '2025-06-27' => 'Awal Muharram',
-        '2025-08-31' => 'National Day',
-        '2025-09-05' => 'Prophet Muhammad\'s Birthday',
-        '2025-09-16' => 'Malaysia Day',
-        '2025-10-20' => 'Deepavali',
-        '2025-12-25' => 'Christmas Day',
-    ];
+    protected HolidayService $holidayService;
+
+    public function __construct(HolidayService $holidayService)
+    {
+        $this->holidayService = $holidayService;
+    }
 
     /**
      * Check if date is a weekend (Saturday/Sunday) or public holiday
@@ -73,13 +38,14 @@ class BookingService
             ];
         }
         
-        // Check public holiday
-        if (isset(self::MALAYSIAN_HOLIDAYS[$dateString])) {
+        // Check public holiday using HolidayService
+        $holidayName = $this->holidayService->getHolidayName($dateString);
+        if ($holidayName) {
             return [
                 'is_off_day' => true,
                 'type' => 'holiday',
-                'day' => self::MALAYSIAN_HOLIDAYS[$dateString],
-                'message' => "This is a public holiday ({self::MALAYSIAN_HOLIDAYS[$dateString]}). Holiday bookings require a special reason."
+                'day' => $holidayName,
+                'message' => "This is a public holiday ({$holidayName}). Holiday bookings require a special reason."
             ];
         }
         
@@ -88,6 +54,7 @@ class BookingService
 
     /**
      * Validate special booking (weekend/holiday)
+     * Includes profanity filtering using PurgoMalum API
      */
     public function validateSpecialBooking(Carbon $date, ?string $reason): void
     {
@@ -99,6 +66,39 @@ class BookingService
                     $offDayCheck['message'] . ' Please provide a valid reason (minimum 10 characters).'
                 );
             }
+            
+            // Check for profanity using PurgoMalum API
+            $this->checkProfanity($reason);
+        }
+    }
+
+    /**
+     * Check text for profanity using PurgoMalum API
+     * @see https://www.purgomalum.com/
+     */
+    private function checkProfanity(string $text): void
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(10)
+                ->get('https://www.purgomalum.com/service/json', [
+                    'text' => $text
+                ]);
+            
+            if ($response->successful()) {
+                $result = $response->json();
+                $filteredText = $result['result'] ?? $text;
+                
+                // If the API returned different text, profanity was detected and censored
+                if ($filteredText !== $text) {
+                    throw new Exception(
+                        'Your booking reason contains inappropriate language. Please revise and try again.'
+                    );
+                }
+            }
+            // If API fails, we allow the booking to proceed (fail open)
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // API unreachable - log and allow booking to proceed
+            \Illuminate\Support\Facades\Log::warning('PurgoMalum API unreachable', ['error' => $e->getMessage()]);
         }
     }
 

@@ -501,34 +501,29 @@
 </div>
 
 @push('scripts')
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 <script>
-    // Scanner configuration
-    const config = { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        showTorchButtonIfSupported: true,
-        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
-    };
-
-    let html5QrcodeScanner = null;
+    let html5QrCode = null;
     let isProcessing = false;
 
     // Success handler
     function onScanSuccess(decodedText, decodedResult) {
-        // Prevent multiple scans
         if (isProcessing) return;
         isProcessing = true;
 
         // Haptic feedback
         if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]); // Double vibration for confirmation
+            navigator.vibrate([200, 100, 200]);
         }
 
         // Visual feedback
         const viewfinder = document.getElementById('viewfinder');
-        viewfinder.style.borderColor = '#10b981'; // Green for success
+        if (viewfinder) viewfinder.style.borderColor = '#10b981';
+        
+        // Stop scanner before redirect
+        if (html5QrCode) {
+            html5QrCode.stop().catch(e => console.log(e));
+        }
         
         // Process the scan
         if (decodedText.includes('/checkin')) {
@@ -539,82 +534,110 @@
         }
     }
 
-    // Error handler (silent for continuous scanning)
-    function onScanFailure(error) {
-        // Silent - normal operation
-    }
-
-    // Initialize scanner
-    function initScanner() {
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            config, 
-            false // verbose
-        );
+    // Initialize scanner with direct camera access
+    async function initScanner() {
+        const readerElement = document.getElementById('reader');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const viewfinder = document.getElementById('viewfinder');
+        const instruction = document.getElementById('instruction');
+        const btnStop = document.getElementById('btnStop');
         
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    }
-
-    // Monitor camera activation
-    const checkCameraInterval = setInterval(() => {
-        const video = document.querySelector('#reader video');
-        if (video && video.readyState >= 1) {
-            // Camera is active
-            document.getElementById('loadingIndicator').style.display = 'none';
-            document.getElementById('btnStop').style.display = 'flex';
-            document.getElementById('viewfinder').style.display = 'block';
-            document.getElementById('instruction').style.display = 'block';
-            clearInterval(checkCameraInterval);
-        }
-    }, 300);
-
-    // Stop scanning function
-    function stopScanning() {
-        if (!html5QrcodeScanner) return;
-        
-        html5QrcodeScanner.clear()
-            .then(_ => {
-                document.getElementById('viewfinder').style.display = 'none';
-                document.getElementById('instruction').style.display = 'none';
-                document.getElementById('stoppedState').style.display = 'flex';
-                document.getElementById('btnStop').style.display = 'none';
-                document.getElementById('loadingIndicator').style.display = 'none';
-            })
-            .catch(error => {
-                console.error("Failed to stop scanner:", error);
-                // Update UI anyway
-                document.getElementById('viewfinder').style.display = 'none';
-                document.getElementById('instruction').style.display = 'none';
-                document.getElementById('stoppedState').style.display = 'flex';
-                document.getElementById('btnStop').style.display = 'none';
-            });
-    }
-
-    // Restart scanning function
-    function restartScanning() {
-        // Hide stopped state
-        document.getElementById('stoppedState').style.display = 'none';
-        
-        // Show loading indicator
-        document.getElementById('loadingIndicator').style.display = 'block';
-        
-        // Reset processing flag
-        isProcessing = false;
-        
-        // Reinitialize scanner
-        initScanner();
-        
-        // Monitor camera activation again
-        const recheckInterval = setInterval(() => {
-            const video = document.querySelector('#reader video');
-            if (video && video.readyState >= 1) {
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('btnStop').style.display = 'flex';
-                document.getElementById('viewfinder').style.display = 'block';
-                document.getElementById('instruction').style.display = 'block';
-                clearInterval(recheckInterval);
+        try {
+            html5QrCode = new Html5Qrcode("reader");
+            
+            // Get available cameras
+            const devices = await Html5Qrcode.getCameras();
+            
+            if (!devices || devices.length === 0) {
+                loadingIndicator.innerHTML = '<div style="color: #ef4444;"><i class="bi bi-camera-video-off" style="font-size: 2rem;"></i><div>No camera found</div><div style="font-size: 0.8rem; margin-top: 0.5rem;">Please check camera permissions</div></div>';
+                return;
             }
-        }, 300);
+            
+            console.log('Available cameras:', devices);
+            
+            // Prefer back camera, fallback to first available
+            let cameraId = devices[0].id;
+            for (const device of devices) {
+                if (device.label.toLowerCase().includes('back') || 
+                    device.label.toLowerCase().includes('rear') ||
+                    device.label.toLowerCase().includes('environment')) {
+                    cameraId = device.id;
+                    break;
+                }
+            }
+            
+            // Start scanning
+            await html5QrCode.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                },
+                onScanSuccess,
+                (errorMessage) => {
+                    // Ignore scan errors (normal when no QR code in view)
+                }
+            );
+            
+            // Camera started successfully - update UI
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            if (viewfinder) viewfinder.style.display = 'block';
+            if (instruction) instruction.style.display = 'block';
+            if (btnStop) btnStop.style.display = 'flex';
+            
+            console.log('Camera started successfully');
+            
+        } catch (err) {
+            console.error('Camera init error:', err);
+            
+            let errorMsg = 'Camera error';
+            if (err.name === 'NotAllowedError') {
+                errorMsg = 'Camera permission denied. Please allow camera access.';
+            } else if (err.name === 'NotFoundError') {
+                errorMsg = 'No camera found on this device.';
+            } else if (err.name === 'NotReadableError') {
+                errorMsg = 'Camera is in use by another application.';
+            } else {
+                errorMsg = err.message || 'Unknown camera error';
+            }
+            
+            if (loadingIndicator) {
+                loadingIndicator.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                        <div style="margin-top: 0.5rem;">${errorMsg}</div>
+                        <button onclick="location.reload()" class="btn btn-outline-light btn-sm mt-3">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Retry
+                        </button>
+                    </div>`;
+            }
+        }
+    }
+
+    // Stop scanning
+    async function stopScanning() {
+        if (!html5QrCode) return;
+        
+        try {
+            await html5QrCode.stop();
+            document.getElementById('viewfinder').style.display = 'none';
+            document.getElementById('instruction').style.display = 'none';
+            document.getElementById('stoppedState').style.display = 'flex';
+            document.getElementById('btnStop').style.display = 'none';
+            document.getElementById('loadingIndicator').style.display = 'none';
+        } catch (error) {
+            console.error("Failed to stop:", error);
+        }
+    }
+
+    // Restart scanning
+    function restartScanning() {
+        document.getElementById('stoppedState').style.display = 'none';
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('loadingIndicator').innerHTML = '<div class="spinner"></div><div>Restarting camera...</div>';
+        isProcessing = false;
+        initScanner();
     }
 
     // Manual check-in
@@ -624,25 +647,23 @@
         
         if (!id) {
             input.focus();
-            input.style.borderColor = '#ef4444'; // Red for error
-            setTimeout(() => {
-                input.style.borderColor = '';
-            }, 2000);
+            input.style.borderColor = '#ef4444';
+            setTimeout(() => input.style.borderColor = '', 2000);
             return;
         }
         
         window.location.href = `/admin/bookings/${id}/checkin`;
     }
 
-    // Allow Enter key for manual entry
+    // Enter key for manual entry
     document.getElementById('manualBookingId')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            manualCheckin();
-        }
+        if (e.key === 'Enter') manualCheckin();
     });
 
     // Initialize on page load
-    initScanner();
+    document.addEventListener('DOMContentLoaded', () => {
+        initScanner();
+    });
 </script>
 @endpush
 @endsection

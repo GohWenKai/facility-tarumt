@@ -18,8 +18,11 @@
             <div class="profile-card">
                 <!-- Avatar Section -->
                 <div class="profile-header">
-                    <div class="profile-avatar">
-                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    <div class="profile-avatar-wrapper">
+                        {{-- DiceBear Adventurer API - Generates unique cartoon avatars --}}
+                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed={{ urlencode($user->email) }}&backgroundColor=ffd5dc,ffdfbf,c0aede" 
+                             alt="{{ $user->name }}" 
+                             class="profile-avatar">
                     </div>
                     <h3 class="profile-name">{{ $user->name }}</h3>
                     <span class="role-badge admin">
@@ -202,7 +205,38 @@
 .profile-card { background: white; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
 
 .profile-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 2rem; text-align: center; }
-.profile-avatar { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: white; margin: 0 auto 1rem; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); }
+
+/* Avatar - Premium Circular Design with Animated Ring */
+.profile-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+.profile-avatar-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444, #f59e0b, #8b5cf6, #3b82f6, #ef4444);
+    background-size: 400% 400%;
+    animation: adminAvatarGlow 3s ease infinite;
+    z-index: 0;
+}
+@keyframes adminAvatarGlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+.profile-avatar { 
+    position: relative;
+    z-index: 1;
+    width: 100px; 
+    height: 100px; 
+    border-radius: 50%; 
+    border: 4px solid rgba(255,255,255,0.95);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    object-fit: cover;
+}
+
 .profile-name { color: white; font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
 .role-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 .role-badge.admin { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }

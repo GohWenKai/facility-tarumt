@@ -12,6 +12,50 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <style>
+        /* Header Avatar - Animated */
+        .header-avatar-wrapper {
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+        .header-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .header-avatar-wrapper:hover .header-avatar {
+            transform: scale(1.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        
+        /* Bounce Animation for Profile Page */
+        .profile-avatar-wrapper {
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .profile-avatar-wrapper:hover {
+            animation: wiggle 0.5s ease;
+        }
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
@@ -125,12 +169,28 @@
                             </ul>
                         </li>
 
-                        <!-- User Profile Dropdown -->
+                        <!-- User Profile Dropdown with Animated Avatar -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle btn btn-link text-white text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="header-avatar-wrapper">
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed={{ urlencode(Auth::user()->email) }}&backgroundColor=b6e3f4" 
+                                         alt="Avatar" 
+                                         class="header-avatar">
+                                </div>
+                                {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed={{ urlencode(Auth::user()->email) }}&backgroundColor=b6e3f4" 
+                                             alt="Avatar" 
+                                             style="width: 40px; height: 40px; border-radius: 50%;">
+                                        <div>
+                                            <div class="fw-bold">{{ Auth::user()->name }}</div>
+                                            <small class="text-muted">{{ Auth::user()->email }}</small>
+                                        </div>
+                                    </div>
+                                </li>
                                 <li>
                                     <a class="dropdown-item" href="{{ route('users.dashboard') }}">
                                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
