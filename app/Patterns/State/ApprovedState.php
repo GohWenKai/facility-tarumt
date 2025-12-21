@@ -22,8 +22,13 @@ class ApprovedState implements BookingState
             Storage::delete($xmlPath);
         }
 
-        // 2. Refund Credits to user
-        $booking->user->increment('credits', $booking->total_cost);
+        // 2. Refund Credits to user (Robust reload)
+        $user = $booking->user; // Get user model
+        if ($user) {
+            $user->refresh(); // Ensure latest balance
+            $user->credits += (int) $booking->total_cost;
+            $user->save();
+        }
 
         // 3. Update Status to rejected (revoked)
         $booking->status = 'rejected';
