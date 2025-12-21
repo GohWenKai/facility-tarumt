@@ -14,6 +14,94 @@ use App\Models\CreditTransaction;
 
 class BookingService
 {
+    // Malaysian Public Holidays (2024-2025)
+    private const MALAYSIAN_HOLIDAYS = [
+        // 2024
+        '2024-01-01' => 'New Year\'s Day',
+        '2024-01-25' => 'Thaipusam',
+        '2024-02-01' => 'Federal Territory Day',
+        '2024-02-10' => 'Chinese New Year',
+        '2024-02-11' => 'Chinese New Year (2nd Day)',
+        '2024-03-28' => 'Nuzul Al-Quran',
+        '2024-04-10' => 'Hari Raya Aidilfitri',
+        '2024-04-11' => 'Hari Raya Aidilfitri (2nd Day)',
+        '2024-05-01' => 'Labour Day',
+        '2024-05-22' => 'Wesak Day',
+        '2024-06-03' => 'King\'s Birthday',
+        '2024-06-17' => 'Hari Raya Haji',
+        '2024-07-07' => 'Awal Muharram',
+        '2024-08-31' => 'National Day',
+        '2024-09-16' => 'Malaysia Day',
+        '2024-09-16' => 'Prophet Muhammad\'s Birthday',
+        '2024-10-31' => 'Deepavali',
+        '2024-12-25' => 'Christmas Day',
+        // 2025
+        '2025-01-01' => 'New Year\'s Day',
+        '2025-01-14' => 'Thaipusam',
+        '2025-01-29' => 'Chinese New Year',
+        '2025-01-30' => 'Chinese New Year (2nd Day)',
+        '2025-02-01' => 'Federal Territory Day',
+        '2025-03-17' => 'Nuzul Al-Quran',
+        '2025-03-30' => 'Hari Raya Aidilfitri',
+        '2025-03-31' => 'Hari Raya Aidilfitri (2nd Day)',
+        '2025-05-01' => 'Labour Day',
+        '2025-05-12' => 'Wesak Day',
+        '2025-06-02' => 'King\'s Birthday',
+        '2025-06-06' => 'Hari Raya Haji',
+        '2025-06-27' => 'Awal Muharram',
+        '2025-08-31' => 'National Day',
+        '2025-09-05' => 'Prophet Muhammad\'s Birthday',
+        '2025-09-16' => 'Malaysia Day',
+        '2025-10-20' => 'Deepavali',
+        '2025-12-25' => 'Christmas Day',
+    ];
+
+    /**
+     * Check if date is a weekend (Saturday/Sunday) or public holiday
+     */
+    public function isOffDay(Carbon $date): array
+    {
+        $dateString = $date->format('Y-m-d');
+        
+        // Check weekend
+        if ($date->isWeekend()) {
+            return [
+                'is_off_day' => true,
+                'type' => 'weekend',
+                'day' => $date->format('l'), // Saturday or Sunday
+                'message' => "This is a {$date->format('l')}. Weekend bookings require a special reason."
+            ];
+        }
+        
+        // Check public holiday
+        if (isset(self::MALAYSIAN_HOLIDAYS[$dateString])) {
+            return [
+                'is_off_day' => true,
+                'type' => 'holiday',
+                'day' => self::MALAYSIAN_HOLIDAYS[$dateString],
+                'message' => "This is a public holiday ({self::MALAYSIAN_HOLIDAYS[$dateString]}). Holiday bookings require a special reason."
+            ];
+        }
+        
+        return ['is_off_day' => false, 'type' => null, 'day' => null, 'message' => null];
+    }
+
+    /**
+     * Validate special booking (weekend/holiday)
+     */
+    public function validateSpecialBooking(Carbon $date, ?string $reason): void
+    {
+        $offDayCheck = $this->isOffDay($date);
+        
+        if ($offDayCheck['is_off_day']) {
+            if (empty($reason) || strlen(trim($reason)) < 10) {
+                throw new Exception(
+                    $offDayCheck['message'] . ' Please provide a valid reason (minimum 10 characters).'
+                );
+            }
+        }
+    }
+
     // Auto-update bookings that passed their end_time to 'overdue'
     public function updateOverdueBookings()
     {
@@ -29,7 +117,10 @@ class BookingService
         $start = Carbon::parse($data['booking_date'] . ' ' . $data['start_time']);
         $end   = Carbon::parse($data['booking_date'] . ' ' . $data['end_time']);
 
-        // 2. Calculate Cost
+        // 2. Check Weekend/Holiday - Require Special Reason
+        $this->validateSpecialBooking($start, $data['special_reason'] ?? null);
+
+        // 3. Calculate Cost
         $cost = (int) max(1, ceil($end->diffInMinutes($start) / 60));
 
         // 3. Check if Recurring
@@ -62,6 +153,9 @@ class BookingService
             // Check for overlaps for primary booking
             $this->checkOverlap($facility->id, $start, $end);
 
+            // Check if this is a special day (weekend/holiday)
+            $offDayCheck = $this->isOffDay($start);
+
             // Create Parent Booking
             $parentBooking = Booking::create([
                 'id' => (string) Str::uuid(),
@@ -74,6 +168,8 @@ class BookingService
                 'is_recurring' => $isRecurring,
                 'recurring_frequency' => $data['recurring_frequency'] ?? null,
                 'recurring_end_date' => $data['recurring_end_date'] ?? null,
+                'special_reason' => $data['special_reason'] ?? null,
+                'is_special_day' => $offDayCheck['is_off_day'],
             ]);
 
             // Deduct Credits for parent
@@ -96,6 +192,17 @@ class BookingService
                     // Check overlap for each recurring date
                     $this->checkOverlap($facility->id, $recurringStart, $recurringEnd);
                     
+                    // Check if this recurring date is a special day
+                    $recurringOffDay = $this->isOffDay($recurringStart);
+                    
+                    // For recurring bookings on special days, require reason from parent
+                    if ($recurringOffDay['is_off_day'] && empty($data['special_reason'])) {
+                        throw new Exception(
+                            "Recurring booking includes {$recurringOffDay['day']} ({$recurringStart->format('d M Y')}). " .
+                            "Please provide a special reason for weekend/holiday bookings."
+                        );
+                    }
+                    
                     $childBooking = Booking::create([
                         'id' => (string) Str::uuid(),
                         'user_id' => $user->id,
@@ -107,6 +214,8 @@ class BookingService
                         'is_recurring' => true,
                         'recurring_frequency' => $data['recurring_frequency'] ?? null,
                         'parent_booking_id' => $parentBooking->id,
+                        'special_reason' => $recurringOffDay['is_off_day'] ? ($data['special_reason'] ?? null) : null,
+                        'is_special_day' => $recurringOffDay['is_off_day'],
                     ]);
                     
                     $user->decrement('credits', $cost);

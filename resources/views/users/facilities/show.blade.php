@@ -160,6 +160,24 @@
                         </select>
                         </div>
 
+                        <!-- Weekend/Holiday Special Reason (Shows automatically) -->
+                        <div id="special-reason-container" class="mb-3 p-3 rounded" style="display: none; background: #fef3c7; border: 2px solid #f59e0b;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-2"></i>
+                                <div>
+                                    <strong class="text-dark" id="special-day-label">Weekend/Holiday Booking</strong>
+                                    <br><small class="text-muted" id="special-day-detail">Selected date requires a special reason</small>
+                                </div>
+                            </div>
+                            <label class="form-label fw-bold text-dark">Reason for Booking <span class="text-danger">*</span></label>
+                            <textarea name="special_reason" id="special_reason" class="form-control" rows="3" 
+                                      placeholder="Please explain why you need to book on this day (minimum 10 characters)..."
+                                      minlength="10"></textarea>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Weekend and public holiday bookings require admin approval with a valid reason.
+                            </small>
+                        </div>
+
                         <!-- Recurring Booking Options -->
                         <div class="mb-3 p-3 rounded" style="background: #f0f9ff; border: 1px solid #bfdbfe;">
                             <div class="form-check form-switch">
@@ -230,6 +248,108 @@
 @push('scripts') <!-- Or just put this before </body> if you don't use stacks -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Malaysian Public Holidays (2024-2025)
+        const MALAYSIAN_HOLIDAYS = {
+            // 2024
+            '2024-01-01': "New Year's Day",
+            '2024-01-25': 'Thaipusam',
+            '2024-02-01': 'Federal Territory Day',
+            '2024-02-10': 'Chinese New Year',
+            '2024-02-11': 'Chinese New Year (2nd Day)',
+            '2024-03-28': 'Nuzul Al-Quran',
+            '2024-04-10': 'Hari Raya Aidilfitri',
+            '2024-04-11': 'Hari Raya Aidilfitri (2nd Day)',
+            '2024-05-01': 'Labour Day',
+            '2024-05-22': 'Wesak Day',
+            '2024-06-03': "King's Birthday",
+            '2024-06-17': 'Hari Raya Haji',
+            '2024-07-07': 'Awal Muharram',
+            '2024-08-31': 'National Day',
+            '2024-09-16': 'Malaysia Day',
+            '2024-10-31': 'Deepavali',
+            '2024-12-25': 'Christmas Day',
+            // 2025
+            '2025-01-01': "New Year's Day",
+            '2025-01-14': 'Thaipusam',
+            '2025-01-29': 'Chinese New Year',
+            '2025-01-30': 'Chinese New Year (2nd Day)',
+            '2025-02-01': 'Federal Territory Day',
+            '2025-03-17': 'Nuzul Al-Quran',
+            '2025-03-30': 'Hari Raya Aidilfitri',
+            '2025-03-31': 'Hari Raya Aidilfitri (2nd Day)',
+            '2025-05-01': 'Labour Day',
+            '2025-05-12': 'Wesak Day',
+            '2025-06-02': "King's Birthday",
+            '2025-06-06': 'Hari Raya Haji',
+            '2025-06-27': 'Awal Muharram',
+            '2025-08-31': 'National Day',
+            '2025-09-05': "Prophet Muhammad's Birthday",
+            '2025-09-16': 'Malaysia Day',
+            '2025-10-20': 'Deepavali',
+            '2025-12-25': 'Christmas Day',
+        };
+
+        // Elements
+        const dateInput = document.querySelector('input[name="booking_date"]');
+        const specialReasonContainer = document.getElementById('special-reason-container');
+        const specialReasonTextarea = document.getElementById('special_reason');
+        const specialDayLabel = document.getElementById('special-day-label');
+        const specialDayDetail = document.getElementById('special-day-detail');
+
+        // Check if date is weekend or holiday
+        function checkSpecialDay(dateString) {
+            if (!dateString) return null;
+            
+            const date = new Date(dateString);
+            const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Check Weekend
+            if (dayOfWeek === 0) {
+                return { type: 'weekend', name: 'Sunday' };
+            }
+            if (dayOfWeek === 6) {
+                return { type: 'weekend', name: 'Saturday' };
+            }
+            
+            // Check Holiday
+            if (MALAYSIAN_HOLIDAYS[dateString]) {
+                return { type: 'holiday', name: MALAYSIAN_HOLIDAYS[dateString] };
+            }
+            
+            return null;
+        }
+
+        // Handle date change
+        function handleDateChange() {
+            const selectedDate = dateInput.value;
+            const specialDay = checkSpecialDay(selectedDate);
+            
+            if (specialDay) {
+                if (specialDay.type === 'weekend') {
+                    specialDayLabel.textContent = `📅 ${specialDay.name} Booking`;
+                    specialDayDetail.textContent = `Weekend bookings require a valid reason for approval.`;
+                } else {
+                    specialDayLabel.textContent = `🎉 Public Holiday Booking`;
+                    specialDayDetail.textContent = `${specialDay.name} - Holiday bookings require a valid reason.`;
+                }
+                specialReasonContainer.style.display = 'block';
+                specialReasonTextarea.required = true;
+            } else {
+                specialReasonContainer.style.display = 'none';
+                specialReasonTextarea.required = false;
+                specialReasonTextarea.value = '';
+            }
+        }
+
+        // Attach event listener
+        if (dateInput) {
+            dateInput.addEventListener('change', handleDateChange);
+            // Check on page load if there's a pre-selected value
+            if (dateInput.value) {
+                handleDateChange();
+            }
+        }
+
         // Check if there is a 'date' parameter in the URL
         const urlParams = new URLSearchParams(window.location.search);
         

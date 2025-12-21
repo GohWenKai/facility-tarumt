@@ -233,8 +233,29 @@
                         </td>
 
                         <td>
-                            <div class="schedule-date">{{ \Carbon\Carbon::parse($booking->start_time)->format('M d, Y') }}</div>
+                            <div class="schedule-date">
+                                {{ \Carbon\Carbon::parse($booking->start_time)->format('M d, Y') }}
+                                @if($booking->is_special_day)
+                                    <span class="badge bg-warning text-dark ms-1" title="Special Day Booking">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </span>
+                                @endif
+                            </div>
                             <div class="schedule-time">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</div>
+                            @if($booking->is_special_day && $booking->special_reason)
+                                <div class="mt-1">
+                                    <small class="text-warning fw-bold">
+                                        <i class="bi bi-chat-quote"></i> Reason:
+                                    </small>
+                                    <small class="text-muted" style="display: block; max-width: 200px; word-wrap: break-word;">
+                                        "{{ Str::limit($booking->special_reason, 50) }}"
+                                    </small>
+                                </div>
+                            @elseif($booking->is_special_day)
+                                <small class="text-danger">
+                                    <i class="bi bi-exclamation-circle"></i> No reason provided
+                                </small>
+                            @endif
                         </td>
 
                         <td>

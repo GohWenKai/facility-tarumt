@@ -27,6 +27,9 @@ class Booking extends Model
         'recurring_frequency',
         'recurring_end_date',
         'parent_booking_id',
+        // Weekend/Holiday booking fields
+        'special_reason',
+        'is_special_day',
     ];
 
     // 3. Auto-convert Dates
@@ -36,6 +39,7 @@ class Booking extends Model
         'total_cost' => 'integer',
         'is_recurring' => 'boolean',
         'recurring_end_date' => 'date',
+        'is_special_day' => 'boolean',
     ];
 
     // --- RELATIONSHIPS ---
