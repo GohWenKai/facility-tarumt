@@ -40,7 +40,7 @@ class ApprovedState implements BookingState
             'Booking Revoked/Cancelled',
             "Your approved booking for {$booking->facility->name} has been revoked by admin. {$booking->total_cost} credits have been refunded.",
             'warning',
-            route('history')
+            route('history', [], false)
         );
 
         return "Booking Revoked. XML Ticket deleted and credits refunded.";

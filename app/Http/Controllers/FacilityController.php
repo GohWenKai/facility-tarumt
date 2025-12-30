@@ -156,12 +156,15 @@ class FacilityController extends Controller
 
         $facility = Facility::create($data);
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'data' => $facility], 201);
-        }
+    // Clear facilities cache so users see new facility immediately
+    Cache::flush();
 
-        return redirect()->route('admin.facilities.manage')
-            ->with('success', 'Facility created successfully!');
+    if ($request->wantsJson()) {
+        return response()->json(['success' => true, 'data' => $facility], 201);
+    }
+
+    return redirect()->route('admin.facilities.manage')
+        ->with('success', 'Facility created successfully!');
     }
 
     public function edit($id)
@@ -196,6 +199,9 @@ class FacilityController extends Controller
 
         $facility->update($validated);
 
+        // Clear facilities cache so users see updated data immediately
+        Cache::flush();
+
         return redirect()->route('admin.facilities.manage')
             ->with('success', 'Facility updated successfully!');
     }
@@ -203,8 +209,11 @@ class FacilityController extends Controller
     public function destroy($id)
     {
         $facility = Facility::findOrFail($id);
-        $facility->delete();
+    $facility->delete();
 
-        return back()->with('success', 'Facility deleted successfully!');
+    // Clear facilities cache so users see deletion immediately
+    Cache::flush();
+
+    return back()->with('success', 'Facility deleted successfully!');
     }
 }

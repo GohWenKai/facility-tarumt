@@ -148,8 +148,16 @@
                                 <li><hr class="dropdown-divider m-0"></li>
                                 @forelse($recentNotifications as $notification)
                                     <li>
+                                        @php
+                                            $notifLink = $notification->link ?? '#';
+                                            // Fix for hardcoded localhost links from database when accessing via 127.0.0.1
+                                            if (Str::contains($notifLink, 'localhost') && request()->getHost() !== 'localhost') {
+                                                $path = parse_url($notifLink, PHP_URL_PATH);
+                                                $notifLink = url($path);
+                                            }
+                                        @endphp
                                         <a class="dropdown-item py-2 {{ !$notification->is_read ? 'bg-light' : '' }}" 
-                                           href="{{ $notification->link ?? '#' }}">
+                                           href="{{ $notifLink }}">
                                             <div class="d-flex align-items-start gap-2">
                                                 <i class="bi bi-{{ $notification->type == 'success' ? 'check-circle text-success' : ($notification->type == 'warning' ? 'exclamation-triangle text-warning' : ($notification->type == 'danger' ? 'x-circle text-danger' : 'info-circle text-primary')) }}" style="font-size: 1.25rem;"></i>
                                                 <div>

@@ -162,8 +162,8 @@
                                 {{ $facility->type }}
                             </span>
 
-                            @if($facility->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($facility->image_path))
-                                <img src="{{ asset('storage/' . $facility->image_path) }}" class="w-100 h-100 object-fit-cover">
+                            @if($facility->image_path)
+                                <img src="{{ asset('storage/' . $facility->image_path) }}" class="w-100 h-100 object-fit-cover" alt="{{ $facility->name }}">
                             @else
                                 <div class="w-100 h-100 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center">
                                     <i class="bi bi-card-image fs-1 text-muted opacity-50"></i>
@@ -189,7 +189,7 @@
                                     <i class="bi bi-people-fill text-secondary"></i> {{ $facility->capacity }} Pax
                                 </span>
                                 <span class="capacity-pill">
-                                    <i class="bi bi-clock text-secondary"></i> 8AM - 10PM
+                                    <i class="bi bi-clock text-secondary"></i> {{ \Carbon\Carbon::parse($facility->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($facility->end_time)->format('H:i') }}
                                 </span>
                             </div>
 

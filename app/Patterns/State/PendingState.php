@@ -40,7 +40,7 @@ class PendingState implements BookingState
             'Booking Approved! ✅',
             "Your booking for {$booking->facility->name} on " . Carbon::parse($booking->start_time)->format('M d, H:i') . " has been approved.",
             'success',
-            route('history')
+            route('history', [], false)
         );
 
         // 4. SEND EMAIL NOTIFICATION
@@ -69,7 +69,7 @@ class PendingState implements BookingState
             'Booking Rejected',
             "Your booking for {$booking->facility->name} was rejected. {$booking->total_cost} credits have been refunded.",
             'danger',
-            route('history')
+            route('history', [], false)
         );
 
         return "Booking Rejected. Credits Refunded.";

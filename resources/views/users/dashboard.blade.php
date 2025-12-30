@@ -128,7 +128,14 @@
                 
                 <div class="position-relative z-1">
                     <span class="badge bg-white bg-opacity-20 text-black border border-white border-opacity-25 mb-2 px-3 py-2 rounded-pill">
-                        <i class="bi bi-star-fill me-1"></i> Student Portal
+                        <i class="bi bi-star-fill me-1"></i> 
+                        @if(Auth::user()->role === 'admin')
+                            Admin Portal
+                        @elseif(Auth::user()->role === 'lecturer')
+                            Lecturer Portal
+                        @else
+                            Student Portal
+                        @endif
                     </span>
                     <h1 class="hero-greeting">Welcome back, {{ explode(' ', Auth::user()->name)[0] }}!</h1>
                     <p class="hero-subtitle">Here's an overview of your facility bookings</p>
